@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COX-Docking-Lab: Selektives Wirkstoff-Design mit KI (Boltz-2)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 3Dmol.js -->
+    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+    <!-- Automatisch eingebundene Boltz-2 Datenbank (580 KB Gzip+Base64) -->
+    <script src="cox_embedded_data.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; user-select: none; }
+        .glass { background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.12); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } }
+        .clash-alert { animation: pulse-red 2s infinite; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex flex-col">
+
+    <!-- ================= HEADER ================= -->
+    <header class="h-14 bg-slate-900 border-b border-slate-800 px-5 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">🧬</span>
+            <div>
+                <h1 class="text-lg font-bold tracking-wide text-white leading-none">
+                    COX-DOCKING-LAB
+                    <span class="text-xs font-normal bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded ml-2">Boltz-2 KI-Simulation · SEK 2</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-0.5">Molekulares Schlüssel-Schloss-Prinzip & Selektives Wirkstoff-Design (COX-1 vs. COX-2)</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <!-- Status-Badge für Datenquelle -->
+            <span id="data_source_badge" class="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-medium">
+                ⏳ Lade Strukturdaten...
+            </span>
+
+            <!-- Manueller Datei-Upload (Fallback / Eigene Experimente) -->
+            <label class="cursor-pointer text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5" title="Optional: Eigene cox_embedded_data.js, JSON oder PDB/CIF laden">
+                <span>📂 Daten laden</span>
+                <input type="file" id="file_input" accept=".js,.json,.pdb,.cif" class="hidden" onchange="handleFileUpload(event)">
+            </label>
+
+            <button onclick="openModal('modal_method')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition">
+                ℹ️ KI-Methode
+            </button>
+            <button onclick="openModal('modal_quiz')" id="btn_quiz_header" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3 py-1.5 rounded-lg transition shadow">
+                🎓 Erkenntnis-Check
+            </button>
+        </div>
+    </header>
+
+    <!-- ================= MAIN SPLIT SCREEN ================= -->
+    <main class="flex-1 flex overflow-hidden">
+
+        <!-- LINKE SPALTE: 3D-VIEWER (65%) -->
+        <section class="w-[65%] h-full relative bg-black flex flex-col justify-between p-4" id="drop_zone">
+            
+            <!-- 3Dmol Container -->
+            <div id="viewer_3d" class="absolute inset-0 w-full h-full z-0"></div>
+
+            <!-- TOP FLOATING BAR: Enzym-Wahl & Flip-Book -->
+            <div class="relative z-10 flex items-center justify-between gap-3 pointer-events-auto">
+                <!-- Enzym-Umschalter -->
+                <div class="glass p-1.5 rounded-xl flex items-center space-x-1 shadow-xl">
+                    <button id="btn_cox1" onclick="selectEnzyme('COX1')" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-blue-600 text-white shadow">
+                        <span>🛡️ COX-1 (Magenschutz)</span>
+                        <span class="text-[10px] bg-black/30 px-1.5 py-0.5 rounded">Ile-523</span>
+                    </button>
+                    <button id="btn_cox2" onclick="selectEnzyme('COX2')" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-slate-300 hover:bg-slate-800">
+                        <span>🔥 COX-2 (Entzündung)</span>
+                        <span class="text-[10px] bg-black/30 px-1.5 py-0.5 rounded">Val-523</span>
+                    </button>
+                </div>
+
+                <!-- Der Aha-Effekt-Button: Flip-Book ohne Kamerasprung -->
+                <button onclick="flipEnzymeKeepCamera()" class="glass hover:bg-indigo-950/90 border-indigo-500/50 text-indigo-200 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xl flex items-center space-x-2 active:scale-95">
+                    <span>⚡ Schnell-Flip: COX-1 ⇄ COX-2</span>
+                    <span class="text-[10px] bg-indigo-500/30 px-1.5 py-0.5 rounded text-white">Kamera fixiert</span>
+                </button>
+            </div>
+
+            <!-- HINWEIS-OVERLAY BEI DRAG & DROP -->
+            <div id="drop_overlay" class="hidden absolute inset-4 border-4 border-dashed border-indigo-400 rounded-2xl bg-slate-900/80 z-30 flex items-center justify-center">
+                <p class="text-xl font-bold text-indigo-300">📂 Datei loslassen, um Strukturdaten zu laden...</p>
+            </div>
+
+            <!-- BOTTOM FLOATING BAR: Kamera-Regie & Darstellungs-Layer -->
+            <div class="relative z-10 flex flex-col gap-2 pointer-events-auto">
+                <!-- Legende für Hotspots -->
+                <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> <b>Ile-523 (COX-1):</b> Großer Türsteher (blockiert Seitentasche)</span>
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> <b>Val-523 (COX-2):</b> Kleiner Türsteher (öffnet Seitentasche)</span>
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> <b>Arg-120:</b> Ionen-Anker (-COOH)</span>
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> <b>Ser-530:</b> Aspirin-Ziel</span>
+                </div>
+
+                <!-- Kamera- und Layer-Buttons -->
+                <div class="glass p-2 rounded-xl flex flex-wrap items-center justify-between gap-2 shadow-xl">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-[11px] text-slate-400 font-semibold px-1">🎥 Kamera:</span>
+                        <button onclick="setCameraPreset('overview')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-medium transition">🌐 Gesamt</button>
+                        <button onclick="setCameraPreset('pocket')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-medium transition">🔍 Bindungstasche</button>
+                        <button onclick="setCameraPreset('gatekeeper')" class="px-2.5 py-1.5 rounded bg-indigo-900/70 hover:bg-indigo-800 border border-indigo-500/40 text-indigo-200 text-xs font-semibold transition">🎯 Fokus Pos. 523</button>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-[11px] text-slate-400 font-semibold px-1">👁️ Layer:</span>
+                        <button id="tog_hotspots" onclick="toggleLayer('hotspots')" class="px-2.5 py-1.5 rounded bg-indigo-600 text-white text-xs font-medium transition">🏷️ Hotspots</button>
+                        <button id="tog_vdw" onclick="toggleLayer('vdw')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition" title="Zeigt echte Atomradien für Sterischen Clash">🫧 VdW-Kugeln (Clash)</button>
+                        <button id="tog_surface" onclick="toggleLayer('surface')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition">🔪 Taschen-Höhle</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RECHTE SPALTE: STEUER- & ANALYSE-COCKPIT (35%) -->
+        <aside class="w-[35%] h-full bg-slate-900 border-l border-slate-800 flex flex-col justify-between p-4 overflow-y-auto custom-scroll space-y-4">
+
+            <!-- 1. WIRKSTOFF WÄHLEN -->
+            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">1. Wirkstoff / Ligand wählen</h2>
+                    <span id="lig_badge" class="text-[11px] text-indigo-400 font-medium">Selektiver Hemmer</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-1.5" id="ligand_buttons">
+                    <!-- Wird dynamisch per JS gefüllt -->
+                </div>
+
+                <!-- Kurz-Charakteristik des gewählten Moleküls -->
+                <div id="ligand_info_box" class="mt-2.5 p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 text-xs text-slate-300 leading-relaxed">
+                    Wähle einen Wirkstoff aus, um seine Strukturmerkmale zu sehen.
+                </div>
+            </div>
+
+            <!-- 2. LIVE-DOCKING & KI-TELEMETRIE -->
+            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 flex flex-col space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Schlüssel-Schloss-Test (Docking)</h2>
+                    <span id="rmsd_label" class="text-[10px] text-slate-500 font-mono">RMSD: 0.00 Å</span>
+                </div>
+
+                <button id="btn_dock" onclick="runDockingAnimation()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg transition flex items-center justify-center space-x-2 active:scale-95">
+                    <span>🚀 DOCKING-ANIMATION STARTEN</span>
+                </button>
+
+                <!-- Messwerte (Affinität) -->
+                <div class="space-y-2 pt-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Boltz-2 Bindungswahrscheinlichkeit:</span>
+                        <span id="val_prob" class="font-bold text-white">-- %</span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5">
+                        <div id="bar_prob" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+
+                    <div class="flex justify-between text-[11px] text-slate-400 pt-1">
+                        <span>Vorhergesagter log₁₀(IC₅₀): <b id="val_ic50" class="text-slate-200">--</b></span>
+                        <span>Komplex-Konfidenz (ipTM): <b id="val_iptm" class="text-slate-200">--</b></span>
+                    </div>
+                </div>
+
+                <!-- Didaktische Diagnose-Box -->
+                <div id="diagnosis_box" class="p-3 rounded-lg border text-xs leading-relaxed transition-all">
+                    Klicke auf „Docking starten“, um die Passform in der Enzymtasche zu prüfen.
+                </div>
+            </div>
+
+            <!-- 3. INTERAKTIVES LABORJOURNAL (5x2 MATRIX) -->
+            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">3. Vergleichsmatrix (Bindungschance)</h2>
+                    <button onclick="fillAllMatrix()" class="text-[11px] text-indigo-400 hover:text-indigo-300 underline">Alle aufdecken</button>
+                </div>
+
+                <table class="w-full text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400">
+                            <th class="py-1.5 text-left font-semibold">Wirkstoff</th>
+                            <th class="py-1.5 text-center font-semibold">🛡️ COX-1 (Ile-523)</th>
+                            <th class="py-1.5 text-center font-semibold">🔥 COX-2 (Val-523)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matrix_body" class="divide-y divide-slate-800/60">
+                        <!-- Dynamisch per JS -->
+                    </tbody>
+                </table>
+            </div>
+
+        </aside>
+    </main>
+
+    <!-- ================= MODAL 1: KI-METHODE ================= -->
+    <div id="modal_method" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white">ℹ️ Wie wurden diese Strukturen mit KI berechnet?</h3>
+                <button onclick="closeModal('modal_method')" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <div class="text-xs text-slate-300 space-y-3 leading-relaxed">
+                <p>Alle 10 Enzym-Wirkstoff-Komplexe in dieser Anwendung wurden mit dem Open-Source-Modell <b>Boltz-2</b> (MIT-Lizenz, Weiterentwicklung der AlphaFold-3-Architektur) in Google Colab berechnet, anschließend mit <b>BioPython</b> im 3D-Raum exakt aufeinander ausgerichtet (Superimposition) und für das Web komprimiert.</p>
+                <div class="grid grid-cols-3 gap-2 text-center my-3">
+                    <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                        <div class="text-lg mb-1">🔤 1. Input (1D)</div>
+                        <div class="text-[11px] text-slate-400">Aminosäuresequenz (FASTA) von COX-1/2 + Strukturcode (SMILES) des Schmerzmittels</div>
+                    </div>
+                    <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                        <div class="text-lg mb-1">🌪️ 2. Co-Folding</div>
+                        <div class="text-[11px] text-slate-400">Ein Diffusions-Netzwerk faltet Protein und Wirkstoff gleichzeitig aus einer Atomwolke (Induced Fit)</div>
+                    </div>
+                    <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                        <div class="text-lg mb-1">📊 3. Affinität</div>
+                        <div class="text-[11px] text-slate-400">Das Boltz-2 Affinity-Modul schätzt die Bindungswahrscheinlichkeit und den IC₅₀-Wert</div>
+                    </div>
+                </div>
+                <p class="bg-indigo-950/50 border border-indigo-500/30 p-3 rounded-lg text-indigo-200">
+                    <b>Didaktischer Hinweis zur „Docking-Animation“:</b> In der Natur falten und bewegen sich Enzym und Wirkstoff im Nanosekunden-Bereich dynamisch umeinander. Der „Einflug“ in dieser App dient als visuelle Lupe, um den Übergang vom ungebundenen zum gebundenen Zustand in der Tasche zu verdeutlichen.
+                </p>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button onclick="closeModal('modal_method')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg">Verstanden</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL 2: ERKENNTNIS-CHECK (LÜCKENTEXT) ================= -->
+    <div id="modal_quiz" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white">🎓 Erkenntnis-Check: Warum ist Celecoxib magenschonender?</h3>
+                <button onclick="closeModal('modal_quiz')" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+
+            <div class="text-sm text-slate-200 space-y-4 leading-8 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <p>
+                    1. Klassische Schmerzmittel wie 
+                    <select id="q1" class="bg-slate-800 border border-slate-600 rounded px-2 py-0.5 text-indigo-300 font-semibold">
+                        <option value="">-- wählen --</option>
+                        <option value="ibu">Ibuprofen</option>
+                        <option value="cel">Celecoxib</option>
+                    </select>
+                    sind schmal gebaut und verankern sich mit ihrer Carboxylgruppe an <b>Arginin-120</b>. Sie blockieren sowohl COX-1 als auch COX-2 (<b>unselektiv</b>).
+                </p>
+                <p>
+                    2. In <b>COX-1</b> ragt an Position 523 die Aminosäure 
+                    <select id="q2" class="bg-slate-800 border border-slate-600 rounded px-2 py-0.5 text-indigo-300 font-semibold">
+                        <option value="">-- wählen --</option>
+                        <option value="val">Valin (kleiner)</option>
+                        <option value="ile">Isoleucin (um eine -CH₂-Gruppe größer)</option>
+                    </select>
+                    in den Kanal. In <b>COX-2</b> sitzt dort stattdessen das kleinere <b>Valin-523</b>, wodurch sich eine zusätzliche 
+                    <select id="q3" class="bg-slate-800 border border-slate-600 rounded px-2 py-0.5 text-indigo-300 font-semibold">
+                        <option value="">-- wählen --</option>
+                        <option value="side">hydrophobe Seitentasche</option>
+                        <option value="disulf">Disulfidbrücke</option>
+                    </select>
+                    öffnet.
+                </p>
+                <p>
+                    3. Da <b>Celecoxib</b> einen sperrigen Sulfonamid-Rest (-SO₂NH₂) besitzt, kommt es in COX-1 zu einem 
+                    <select id="q4" class="bg-slate-800 border border-slate-600 rounded px-2 py-0.5 text-indigo-300 font-semibold">
+                        <option value="">-- wählen --</option>
+                        <option value="clash">sterischen Clash (Abstoßung der Elektronenhüllen)</option>
+                        <option value="cov">kovalenten Bindungsbruch</option>
+                    </select>.
+                    Das Magenschutz-Enzym COX-1 bleibt daher weitgehend intakt!
+                </p>
+            </div>
+
+            <div id="quiz_feedback" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="checkQuiz()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow">Antworten prüfen</button>
+                <button onclick="closeModal('modal_quiz')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT LOGIK ================= -->
+    <script>
+        // Metadaten & Didaktische Erklärungen zu den 5 Wirkstoffen
+        const LIGAND_META = {
+            "Arachidonsaeure": {
+                label: "🩸 Arachidonsäure",
+                badge: "Natürliches Substrat",
+                desc: "Ungesättigte Fettsäure (20 C-Atome). Wird von COX-1 und COX-2 gleichermaßen in Prostaglandine (Schmerz- & Magenschutz-Botenstoffe) umgewandelt.",
+                diag_COX1: "✅ <b>Natürliche Reaktion:</b> Die Fettsäure liegt passgenau im Kanal (Carboxylgruppe nahe Arg-120, Kette bei Tyr-385). COX-1 produziert schützende Magen-Prostaglandine.",
+                diag_COX2: "✅ <b>Natürliche Reaktion:</b> Die Fettsäure wird im Kanal von COX-2 zu entzündungsfördernden Prostaglandinen umgesetzt (Schmerz & Fieber entstehen)."
+            },
+            "Ibuprofen": {
+                label: "💊 Ibuprofen",
+                badge: "Klassisches NSAR (unselektiv)",
+                desc: "Schmales, kompaktes Molekül mit einer propionsauren Carboxylgruppe (-COOH), die als ionischer Anker an Arginin-120 andockt.",
+                diag_COX1: "⚠️ <b>Unselektive Blockade:</b> Das schmale Ibuprofen passt mühelos an Isoleucin-523 vorbei in COX-1. Folge: Der Magenschutz fällt weg (Nebenwirkung bei Dauertherapie!).",
+                diag_COX2: "✅ <b>Gewünschte Schmerzhemmung:</b> Ibuprofen blockiert den Kanal von COX-2 zuverlässig – es braucht die zusätzliche Seitentasche gar nicht."
+            },
+            "Aspirin": {
+                label: "💊 Aspirin (ASS)",
+                badge: "Irreversibler Hemmer",
+                desc: "Acetylsalicylsäure. Bindet im Kanal und überträgt ihre Acetylgruppe kovalent auf die Aminosäure Serin-530.",
+                diag_COX1: "⚠️ <b>Dauerhafte Blockade:</b> ASS acetyliert Serin-530 in COX-1 irreversibel. Hemmt die Blutgerinnung und schwächt den Magenschutz.",
+                diag_COX2: "✅ <b>Schmerzhemmung:</b> Auch in COX-2 wird Serin-530 durch den Acetyl-Übertrag blockiert."
+            },
+            "Naproxen": {
+                label: "💊 Naproxen",
+                badge: "Klassisches NSAR (unselektiv)",
+                desc: "Flaches Naphthalin-Doppelringsystem. Ähnlich wie Ibuprofen schmal genug für beide Enzym-Kanäle.",
+                diag_COX1: "⚠️ <b>Unselektive Blockade:</b> Trotz des Doppelrings ist Naproxen flach genug, um nicht mit Isoleucin-523 zu kollidieren. COX-1 wird gehemmt.",
+                diag_COX2: "✅ <b>Starke Entzündungshemmung:</b> Hohe Affinität in der hydrophoben Tasche von COX-2."
+            },
+            "Celecoxib": {
+                label: "🎯 Celecoxib (Coxib)",
+                badge: "Selektiver COX-2-Hemmer",
+                desc: "Besitzt eine starre, Y-förmige 3-Ring-Struktur mit einer sperrigen Sulfonamid-Seitenkette (-SO₂NH₂).",
+                diag_COX1: "🛑 <b>STERISCHE HINDERUNG AN ILE-523!</b> Die größere Seitenkette von Isoleucin-523 verengt den Zugang zur Seitentasche. Celecoxib stößt an bzw. wird verdrängt (Schalte „🫧 VdW-Kugeln“ ein!).",
+                diag_COX2: "🎉 <b>PERFEKTE SELEKTIVITÄT!</b> Da Valin-523 um eine -CH₂-Gruppe kleiner ist, öffnet sich die Seitentasche. Der Sulfonamid-Rest findet Platz!"
+            }
+        };
+
+        // App-Status
+        let db = null;
+        let currentEnzyme = "COX2";
+        let currentLigand = "Celecoxib";
+        let viewer = null;
+        let activeLayers = { hotspots: true, vdw: false, surface: false };
+        let discoveredMatrix = {};
+        let animFrameId = null;
+
+        // =========================================================================
+        // SYNTHETISCHER FALLBACK-GENERATOR (Nur falls cox_embedded_data.js fehlt)
+        // =========================================================================
+        function buildSyntheticDemoDatabase() {
+            const hotspots = {
+                "COX1": { gatekeeper_523: 522, catalytic_ser530: 529, anchor_arg120: 119, catalytic_tyr385: 384 },
+                "COX2": { gatekeeper_523: 509, catalytic_ser530: 516, anchor_arg120: 106, catalytic_tyr385: 371 }
+            };
+            const scores = {
+                "COX1_Arachidonsaeure": { prob: 0.91, ic50: -1.4, iptm: 0.89 },
+                "COX2_Arachidonsaeure": { prob: 0.92, ic50: -1.5, iptm: 0.90 },
+                "COX1_Ibuprofen":       { prob: 0.88, ic50: -1.1, iptm: 0.87 },
+                "COX2_Ibuprofen":       { prob: 0.85, ic50: -0.9, iptm: 0.86 },
+                "COX1_Aspirin":         { prob: 0.82, ic50: -0.7, iptm: 0.83 },
+                "COX2_Aspirin":         { prob: 0.74, ic50: -0.3, iptm: 0.80 },
+                "COX1_Naproxen":        { prob: 0.89, ic50: -1.3, iptm: 0.88 },
+                "COX2_Naproxen":        { prob: 0.87, ic50: -1.2, iptm: 0.88 },
+                "COX1_Celecoxib":       { prob: 0.12, ic50:  1.8, iptm: 0.42 },
+                "COX2_Celecoxib":       { prob: 0.95, ic50: -2.1, iptm: 0.94 }
+            };
+            function pad(str, len, right=false) {
+                str = String(str);
+                return right ? str.padEnd(len, ' ') : str.padStart(len, ' ');
+            }
+            function pdbAtom(serial, name, resName, chain, resSeq, x, y, z, elem) {
+                return `ATOM  ${pad(serial,5)} ${pad(name,4,true)} ${pad(resName,3)} ${chain}${pad(resSeq,4)}    ${pad(x.toFixed(2),8)}${pad(y.toFixed(2),8)}${pad(z.toFixed(2),8)}  1.00 85.00          ${pad(elem,2)}`;
+            }
+            const models = {};
+            for (const enz of ["COX1", "COX2"]) {
+                const gkRes = hotspots[enz].gatekeeper_523;
+                const serRes = hotspots[enz].catalytic_ser530;
+                const argRes = hotspots[enz].anchor_arg120;
+                const tyrRes = hotspots[enz].catalytic_tyr385;
+                for (const lig of Object.keys(LIGAND_META)) {
+                    const jobId = `${enz}_${lig}`;
+                    let lines = [];
+                    let serial = 1;
+                    let pocketRes = [argRes, tyrRes, gkRes, serRes];
+                    const helices = [
+                        { startRes: 105, count: 22, cx: -6.5, cy: -5.0, z0: -10 },
+                        { startRes: 365, count: 25, cx:  0.0, cy:  7.5, z0: -8 },
+                        { startRes: 500, count: 35, cx:  6.0, cy:  0.0, z0: -12 },
+                        { startRes: 200, count: 20, cx: -6.0, cy:  5.5, z0: -9 }
+                    ];
+                    for (const h of helices) {
+                        for (let i = 0; i < h.count; i++) {
+                            const rId = h.startRes + i;
+                            const ang = i * 1.74;
+                            const caX = h.cx + 2.3 * Math.cos(ang), caY = h.cy + 2.3 * Math.sin(ang), caZ = h.z0 + i * 1.5;
+                            let rName = (rId === gkRes) ? ((enz === "COX1") ? "ILE" : "VAL") : (rId === serRes) ? "SER" : (rId === argRes) ? "ARG" : (rId === tyrRes) ? "TYR" : "ALA";
+                            lines.push(pdbAtom(serial++, "N", rName, "A", rId, caX-0.7, caY-0.5, caZ-0.6, "N"));
+                            lines.push(pdbAtom(serial++, "CA", rName, "A", rId, caX, caY, caZ, "C"));
+                            lines.push(pdbAtom(serial++, "C", rName, "A", rId, caX+0.7, caY+0.5, caZ+0.6, "C"));
+                            lines.push(pdbAtom(serial++, "O", rName, "A", rId, caX+1.4, caY+0.9, caZ+0.4, "O"));
+                        }
+                    }
+                    lines.push(pdbAtom(serial++, "C1", "UNL", "L", 1, 0.0, 0.0, 0.0, "C"));
+                    const sc = scores[jobId];
+                    models[jobId] = {
+                        enzyme: enz, ligand: lig, rmsd_to_ref: 0.0,
+                        affinity_probability: sc.prob, affinity_log10_ic50: sc.ic50, iptm: sc.iptm,
+                        ligand_center: [0,0,0], gatekeeper_ca_coord: [4.5,0.2,0],
+                        pocket_residues: pocketRes, pdb_data: lines.join("\n")
+                    };
+                }
+            }
+            return { hotspots, models };
+        }
+
+        // =========================================================================
+        // INITIALISIERUNG & AUTOMATISCHES ENTPACKEN VON cox_embedded_data.js
+        // =========================================================================
+        window.addEventListener("DOMContentLoaded", async () => {
+            viewer = $3Dmol.createViewer("viewer_3d", {
+                backgroundColor: "#020617",
+                antialias: true
+            });
+
+            // Prüfe, ob cox_embedded_data.js geladen wurde
+            if (typeof COX_COMPRESSED_B64 !== "undefined" && COX_COMPRESSED_B64.length > 50) {
+                try {
+                    const binStr = atob(COX_COMPRESSED_B64);
+                    const bytes = Uint8Array.from(binStr, c => c.charCodeAt(0));
+                    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+                    const jsonText = await new Response(stream).text();
+                    db = JSON.parse(jsonText);
+                    setBadgeRealData();
+                } catch (e) {
+                    console.error("Fehler beim Entpacken von COX_COMPRESSED_B64:", e);
+                    db = buildSyntheticDemoDatabase();
+                }
+            } else {
+                db = buildSyntheticDemoDatabase();
+            }
+
+            discoveredMatrix["COX1_Ibuprofen"] = true;
+            discoveredMatrix["COX2_Ibuprofen"] = true;
+
+            renderLigandButtons();
+            renderMatrixTable();
+            setupDragAndDrop();
+            loadCurrentModel(true);
+        });
+
+        function setBadgeRealData() {
+            const badge = document.getElementById("data_source_badge");
+            badge.className = "text-xs px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold";
+            badge.innerHTML = "✅ Echte Boltz-2 KI-Strukturen aktiv";
+        }
+
+        // =========================================================================
+        // UI-STEUERUNG (ENZYM, LIGAND, KAMERA, LAYER)
+        // =========================================================================
+        function renderLigandButtons() {
+            const container = document.getElementById("ligand_buttons");
+            container.innerHTML = "";
+            for (const [key, meta] of Object.entries(LIGAND_META)) {
+                const active = (key === currentLigand);
+                const btn = document.createElement("button");
+                btn.className = `w-full px-3 py-2 rounded-lg text-xs font-semibold text-left transition flex items-center justify-between border ${
+                    active ? "bg-indigo-600/30 border-indigo-500 text-white shadow" : "bg-slate-900/80 border-slate-800 text-slate-300 hover:bg-slate-800"
+                }`;
+                btn.onclick = () => selectLigand(key);
+                btn.innerHTML = `<span>${meta.label}</span><span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-950/70 text-slate-400">${meta.badge}</span>`;
+                container.appendChild(btn);
+            }
+        }
+
+        function selectEnzyme(enz) {
+            currentEnzyme = enz;
+            updateEnzymeButtons();
+            loadCurrentModel(false, true);
+        }
+
+        function flipEnzymeKeepCamera() {
+            currentEnzyme = (currentEnzyme === "COX1") ? "COX2" : "COX1";
+            updateEnzymeButtons();
+            loadCurrentModel(false, true);
+        }
+
+        function updateEnzymeButtons() {
+            const b1 = document.getElementById("btn_cox1");
+            const b2 = document.getElementById("btn_cox2");
+            if (currentEnzyme === "COX1") {
+                b1.className = "px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-blue-600 text-white shadow";
+                b2.className = "px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-slate-300 hover:bg-slate-800";
+            } else {
+                b2.className = "px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-rose-600 text-white shadow";
+                b1.className = "px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-slate-300 hover:bg-slate-800";
+            }
+        }
+
+        function selectLigand(lig) {
+            currentLigand = lig;
+            renderLigandButtons();
+            loadCurrentModel(false, true);
+        }
+
+        // =========================================================================
+        // 3D-SZENE RENDERN & STYLING
+        // =========================================================================
+        function loadCurrentModel(initialZoom = false, preserveView = true) {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            const jobId = `${currentEnzyme}_${currentLigand}`;
+            const entry = db.models[jobId];
+            if (!entry) return;
+
+            const savedView = (!initialZoom && preserveView) ? viewer.getView() : null;
+
+            viewer.clear();
+            viewer.addModel(entry.pdb_data, "pdb");
+
+            applySceneStyles(entry);
+
+            if (savedView && savedView.length > 0 && savedView[3] !== 0) {
+                viewer.setView(savedView);
+            } else {
+                setCameraPreset("pocket");
+            }
+
+            viewer.render();
+
+            discoveredMatrix[jobId] = true;
+            updateTelemetryPanel(entry);
+            renderMatrixTable();
+        }
+
+        function applySceneStyles(entry) {
+            viewer.setStyle({}, {});
+            viewer.removeAllLabels();
+            viewer.removeAllSurfaces();
+            viewer.removeAllShapes();
+
+            const enz = entry.enzyme;
+            const hs = db.hotspots[enz];
+            const isClash = (enz === "COX1" && entry.ligand === "Celecoxib");
+
+            // 1. Protein-Grundgerüst (Chain A) als dezentes graues Bändermodell + dünne Taschen-Seitenketten
+            viewer.setStyle({chain: "A"}, {cartoon: {color: "#475569", opacity: 0.72}});
+            if (entry.pocket_residues) {
+                viewer.addStyle({chain: "A", resi: entry.pocket_residues}, {stick: {colorscheme: "grayCarbon", radius: 0.11, opacity: 0.55}});
+            }
+
+            // 2. Wirkstoff / Ligand (Chain L)
+            const ligStyle = { stick: {colorscheme: "cyanCarbon", radius: 0.28} };
+            if (activeLayers.vdw) {
+                ligStyle.sphere = {colorscheme: "cyanCarbon", scale: 0.75, opacity: 0.85};
+            }
+            viewer.setStyle({chain: "L"}, ligStyle);
+
+            // 3. Hotspots (Schlüssel-Aminosäuren)
+            if (activeLayers.hotspots && hs) {
+                // Position 523 (Rot für Ile-523 in COX-1, Grün für Val-523 in COX-2)
+                const gkColor = (enz === "COX1") ? "#f43f5e" : "#10b981";
+                const gkStyle = { stick: {color: gkColor, radius: 0.34} };
+                if (activeLayers.vdw) {
+                    gkStyle.sphere = {color: gkColor, scale: 0.82, opacity: 0.88};
+                }
+                viewer.setStyle({chain: "A", resi: hs.gatekeeper_523}, gkStyle);
+                viewer.addLabel(
+                    enz === "COX1" ? "🚪 Ile-523 (Groß: Blockiert!)" : "🚪 Val-523 (Klein: Seitentasche offen!)",
+                    {fontSize: 12, fontColor: "white", backgroundColor: gkColor, backgroundOpacity: 0.85},
+                    {chain: "A", resi: hs.gatekeeper_523}
+                );
+
+                // Arg-120 (Blau: Ionen-Anker)
+                viewer.setStyle({chain: "A", resi: hs.anchor_arg120}, {stick: {color: "#38bdf8", radius: 0.24}});
+                viewer.addLabel("⚓ Arg-120 (-COOH Anker)", {fontSize: 11, fontColor: "white", backgroundColor: "#0284c7", backgroundOpacity: 0.8}, {chain: "A", resi: hs.anchor_arg120});
+
+                // Ser-530 (Gelb: Katalyse / Aspirin)
+                viewer.setStyle({chain: "A", resi: hs.catalytic_ser530}, {stick: {color: "#fbbf24", radius: 0.24}});
+                viewer.addLabel("✂️ Ser-530", {fontSize: 11, fontColor: "black", backgroundColor: "#fbbf24", backgroundOpacity: 0.85}, {chain: "A", resi: hs.catalytic_ser530});
+
+                // Tyr-385 (Violett: Katalyse)
+                viewer.setStyle({chain: "A", resi: hs.catalytic_tyr385}, {stick: {color: "#c084fc", radius: 0.22}});
+                viewer.addLabel("⚡ Tyr-385", {fontSize: 11, fontColor: "white", backgroundColor: "#7e22ce", backgroundOpacity: 0.8}, {chain: "A", resi: hs.catalytic_tyr385});
+            }
+
+            // 4. Visuelle Clash-Markierung zwischen Ile-523 und Celecoxib bei COX-1
+            if (isClash && entry.gatekeeper_ca_coord && entry.ligand_center) {
+                const gk = entry.gatekeeper_ca_coord;
+                const lc = entry.ligand_center;
+                viewer.addSphere({
+                    center: {x: (gk[0] + lc[0]) / 2, y: (gk[1] + lc[1]) / 2, z: (gk[2] + lc[2]) / 2},
+                    radius: 2.4,
+                    color: "#ef4444",
+                    alpha: 0.45,
+                    wireframe: true
+                });
+            }
+
+            // 5. Taschen-Oberfläche (Surface)
+            if (activeLayers.surface) {
+                const resList = entry.pocket_residues || [];
+                const sel = resList.length > 0 ? {chain: "A", resi: resList} : {chain: "A"};
+                viewer.addSurface($3Dmol.SurfaceType.VDW, {opacity: 0.55, color: "#cbd5e1"}, sel);
+            }
+        }
+
+        function toggleLayer(layerName) {
+            activeLayers[layerName] = !activeLayers[layerName];
+            const btnMap = { hotspots: "tog_hotspots", vdw: "tog_vdw", surface: "tog_surface" };
+            const btn = document.getElementById(btnMap[layerName]);
+            if (activeLayers[layerName]) {
+                btn.className = "px-2.5 py-1.5 rounded bg-indigo-600 text-white text-xs font-medium transition";
+            } else {
+                btn.className = "px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition";
+            }
+            const jobId = `${currentEnzyme}_${currentLigand}`;
+            applySceneStyles(db.models[jobId]);
+            viewer.render();
+        }
+
+        function setCameraPreset(mode) {
+            const hs = db.hotspots[currentEnzyme];
+            if (mode === "overview") {
+                viewer.zoomTo({chain: "A"}, 600);
+            } else if (mode === "pocket") {
+                if (hs) {
+                    viewer.zoomTo({chain: "A", resi: [hs.gatekeeper_523, hs.anchor_arg120, hs.catalytic_ser530, hs.catalytic_tyr385]}, 600);
+                } else {
+                    viewer.zoomTo({chain: "L"}, 600);
+                }
+            } else if (mode === "gatekeeper" && hs) {
+                viewer.zoomTo({chain: "A", resi: [hs.gatekeeper_523, hs.catalytic_ser530]}, 600);
+            }
+        }
+
+        // =========================================================================
+        // LIVE-DOCKING FLUG-ANIMATION
+        // =========================================================================
+        function runDockingAnimation() {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            const jobId = `${currentEnzyme}_${currentLigand}`;
+            const entry = db.models[jobId];
+            if (!entry) return;
+
+            const model = viewer.getModel(0);
+            const ligAtoms = model.selectedAtoms({chain: "L"});
+            if (!ligAtoms || ligAtoms.length === 0) return;
+
+            // Berechne Einflug-Vektor vom Protein-Zentrum Richtung Liganden-Tasche
+            const protAtoms = model.selectedAtoms({chain: "A", atom: "CA"});
+            let px = 0, py = 0, pz = 0;
+            if (protAtoms.length > 0) {
+                protAtoms.forEach(a => { px += a.x; py += a.y; pz += a.z; });
+                px /= protAtoms.length; py /= protAtoms.length; pz /= protAtoms.length;
+            }
+            const lc = entry.ligand_center || [0, 0, 0];
+            let vx = lc[0] - px, vy = lc[1] - py, vz = lc[2] - pz;
+            const len = Math.hypot(vx, vy, vz) || 1;
+            vx /= len; vy /= len; vz /= len;
+
+            const targetCoords = ligAtoms.map(a => ({x: a.x, y: a.y, z: a.z}));
+            const totalFrames = 45;
+            let frame = 0;
+            const isClash = (currentEnzyme === "COX1" && currentLigand === "Celecoxib");
+
+            function step() {
+                frame++;
+                let progress = frame / totalFrames;
+                let ease = 1 - Math.pow(1 - progress, 3);
+
+                let offsetDist = (1 - ease) * 14.0;
+                if (isClash && progress > 0.78) {
+                    offsetDist += Math.sin((progress - 0.78) * Math.PI * 4) * 1.5;
+                }
+
+                for (let i = 0; i < ligAtoms.length; i++) {
+                    ligAtoms[i].x = targetCoords[i].x + vx * offsetDist;
+                    ligAtoms[i].y = targetCoords[i].y + vy * offsetDist;
+                    ligAtoms[i].z = targetCoords[i].z + vz * offsetDist;
+                }
+
+                applySceneStyles(entry);
+                viewer.render();
+
+                if (frame < totalFrames) {
+                    animFrameId = requestAnimationFrame(step);
+                } else {
+                    for (let i = 0; i < ligAtoms.length; i++) {
+                        ligAtoms[i].x = targetCoords[i].x;
+                        ligAtoms[i].y = targetCoords[i].y;
+                        ligAtoms[i].z = targetCoords[i].z;
+                    }
+                    if (isClash && !activeLayers.vdw) {
+                        toggleLayer("vdw");
+                    } else {
+                        applySceneStyles(entry);
+                        viewer.render();
+                    }
+                }
+            }
+            step();
+        }
+
+        // =========================================================================
+        // TELEMETRIE & VERGLEICHSMATRIX AKTUALISIEREN
+        // =========================================================================
+        function updateTelemetryPanel(entry) {
+            const meta = LIGAND_META[entry.ligand];
+            document.getElementById("lig_badge").textContent = meta.badge;
+            document.getElementById("ligand_info_box").innerHTML = meta.desc;
+            document.getElementById("rmsd_label").textContent = `RMSD zum Anker: ${(entry.rmsd_to_ref || 0).toFixed(2)} Å`;
+
+            const probPct = entry.affinity_probability != null ? Math.round(entry.affinity_probability * 100) : 50;
+            document.getElementById("val_prob").textContent = `${probPct} %`;
+            const bar = document.getElementById("bar_prob");
+            bar.style.width = `${probPct}%`;
+            bar.className = `h-full rounded-full transition-all duration-500 ${probPct >= 65 ? "bg-emerald-500" : probPct >= 45 ? "bg-amber-500" : "bg-rose-500"}`;
+
+            document.getElementById("val_ic50").textContent = entry.affinity_log10_ic50 != null ? `${entry.affinity_log10_ic50.toFixed(2)} µM` : "n/a";
+            document.getElementById("val_iptm").textContent = entry.iptm != null ? entry.iptm.toFixed(2) : "n/a";
+
+            const diagBox = document.getElementById("diagnosis_box");
+            const isClash = (entry.enzyme === "COX1" && entry.ligand === "Celecoxib");
+            diagBox.innerHTML = (entry.enzyme === "COX1") ? meta.diag_COX1 : meta.diag_COX2;
+
+            if (isClash) {
+                diagBox.className = "p-3 rounded-lg border border-rose-500 bg-rose-950/60 text-rose-200 text-xs leading-relaxed clash-alert";
+            } else if (entry.enzyme === "COX2" && entry.ligand === "Celecoxib") {
+                diagBox.className = "p-3 rounded-lg border border-emerald-500 bg-emerald-950/60 text-emerald-200 text-xs leading-relaxed";
+            } else {
+                diagBox.className = "p-3 rounded-lg border border-slate-700 bg-slate-900/90 text-slate-200 text-xs leading-relaxed";
+            }
+        }
+
+        function renderMatrixTable() {
+            const tbody = document.getElementById("matrix_body");
+            tbody.innerHTML = "";
+            for (const [ligKey, meta] of Object.entries(LIGAND_META)) {
+                const tr = document.createElement("tr");
+                tr.className = (ligKey === currentLigand) ? "bg-slate-800/50" : "";
+
+                const cellHtml = (enz) => {
+                    const jId = `${enz}_${ligKey}`;
+                    const m = db.models[jId];
+                    if (!discoveredMatrix[jId] || !m) {
+                        return `<button onclick="selectEnzyme('${enz}'); selectLigand('${ligKey}');" class="px-2 py-0.5 rounded bg-slate-800 text-slate-500 hover:text-slate-300 text-[11px]">? testen</button>`;
+                    }
+                    const pct = Math.round((m.affinity_probability || 0) * 100);
+                    const cls = pct >= 65 ? "text-emerald-400 font-bold" : pct >= 45 ? "text-amber-400 font-semibold" : "text-rose-400 font-bold";
+                    const icon = (enz === "COX1" && ligKey === "Celecoxib") ? "⚡ " : "";
+                    return `<button onclick="selectEnzyme('${enz}'); selectLigand('${ligKey}');" class="${cls} hover:underline">${icon}${pct} %</button>`;
+                };
+
+                tr.innerHTML = `
+                    <td class="py-1.5 font-medium text-slate-200">${meta.label}</td>
+                    <td class="py-1.5 text-center">${cellHtml('COX1')}</td>
+                    <td class="py-1.5 text-center">${cellHtml('COX2')}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function fillAllMatrix() {
+            for (const k of Object.keys(db.models)) discoveredMatrix[k] = true;
+            renderMatrixTable();
+        }
+
+        // =========================================================================
+        // DATEI-UPLOAD & DRAG-AND-DROP
+        // =========================================================================
+        function setupDragAndDrop() {
+            const dz = document.body;
+            const overlay = document.getElementById("drop_overlay");
+            dz.addEventListener("dragover", (e) => { e.preventDefault(); overlay.classList.remove("hidden"); });
+            dz.addEventListener("dragleave", (e) => { if (e.target === overlay) overlay.classList.add("hidden"); });
+            dz.addEventListener("drop", (e) => {
+                e.preventDefault();
+                overlay.classList.add("hidden");
+                if (e.dataTransfer.files.length > 0) processUploadedFile(e.dataTransfer.files[0]);
+            });
+        }
+
+        function handleFileUpload(event) {
+            if (event.target.files.length > 0) processUploadedFile(event.target.files[0]);
+        }
+
+        async function processUploadedFile(file) {
+            const text = await file.text();
+            try {
+                if (file.name.endsWith(".json")) {
+                    const parsed = JSON.parse(text);
+                    if (parsed.models) {
+                        db = parsed;
+                        setBadgeRealData();
+                        loadCurrentModel(true);
+                    }
+                } else if (file.name.endsWith(".js")) {
+                    const match = text.match(/COX_COMPRESSED_B64\s*=\s*"([^"]+)"/);
+                    if (match && match[1]) {
+                        const binStr = atob(match[1]);
+                        const bytes = Uint8Array.from(binStr, c => c.charCodeAt(0));
+                        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+                        const jsonText = await new Response(stream).text();
+                        db = JSON.parse(jsonText);
+                        setBadgeRealData();
+                        loadCurrentModel(true);
+                    }
+                } else if (file.name.endsWith(".pdb") || file.name.endsWith(".cif")) {
+                    const fmt = file.name.endsWith(".cif") ? "cif" : "pdb";
+                    viewer.clear();
+                    viewer.addModel(text, fmt);
+                    viewer.setStyle({chain: "A"}, {cartoon: {color: "#475569"}});
+                    viewer.setStyle({chain: "L"}, {stick: {colorscheme: "cyanCarbon", radius: 0.3}});
+                    viewer.zoomTo();
+                    viewer.render();
+                }
+            } catch (err) {
+                alert("Fehler beim Laden der Datei: " + err.message);
+            }
+        }
+
+        // =========================================================================
+        // MODALS & LÜCKENTEXT-CHECK
+        // =========================================================================
+        function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+        function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+
+        function checkQuiz() {
+            const a1 = document.getElementById("q1").value;
+            const a2 = document.getElementById("q2").value;
+            const a3 = document.getElementById("q3").value;
+            const a4 = document.getElementById("q4").value;
+            const fb = document.getElementById("quiz_feedback");
+            fb.classList.remove("hidden");
+
+            if (a1 === "ibu" && a2 === "ile" && a3 === "side" && a4 === "clash") {
+                fb.className = "p-3 rounded-lg text-xs font-semibold bg-emerald-950 border border-emerald-500 text-emerald-300";
+                fb.innerHTML = "🎉 <b>Perfekt gelöst!</b> Du hast den molekularen Mechanismus der selektiven COX-2-Hemmung vollständig entschlüsselt.";
+            } else {
+                fb.className = "p-3 rounded-lg text-xs font-semibold bg-rose-950 border border-rose-500 text-rose-300";
+                fb.innerHTML = "⚠️ Noch nicht alle Lücken stimmen. Tipp: Nutze den „⚡ Schnell-Flip“-Button bei Celecoxib und schalte die „🫧 VdW-Kugeln“ ein!";
+            }
+        }
+    </script>
+</body>
+</html>
