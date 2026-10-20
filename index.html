@@ -110,6 +110,7 @@
                         <span class="text-[11px] text-slate-400 font-semibold px-1">👁️ Layer:</span>
                         <button id="tog_hotspots" onclick="toggleLayer('hotspots')" class="px-2.5 py-1.5 rounded bg-indigo-600 text-white text-xs font-medium transition">🏷️ Hotspots</button>
                         <button id="tog_vdw" onclick="toggleLayer('vdw')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition" title="Zeigt echte Atomradien für Sterischen Clash">🫧 VdW-Kugeln (Clash)</button>
+                        <button id="tog_pocket_env" onclick="toggleLayer('pocket_env')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition" title="Blendet die übrigen Taschen-Aminosäuren dezent ein">🕸️ Taschen-Gerüst</button>
                         <button id="tog_surface" onclick="toggleLayer('surface')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition">🔪 Taschen-Höhle</button>
                     </div>
                 </div>
@@ -212,7 +213,7 @@
                     </div>
                 </div>
                 <p class="bg-indigo-950/50 border border-indigo-500/30 p-3 rounded-lg text-indigo-200">
-                    <b>Didaktischer Hinweis zur „Docking-Animation“:</b> Wenn ein Molekül (wie Celecoxib in COX-1) zu sperrig für die Bindungstasche ist, weicht Boltz-2 beim Co-Folding oft an die äußere Proteinoberfläche aus. Für den direkten visuellen Vergleich an Position 523 führt diese Simulation den Wirkstoff gezielt in das aktive Zentrum ein, um die sterische Überlappung (Van-der-Waals-Clash) an Isoleucin-523 sichtbar zu machen.
+                    <b>Didaktischer Hinweis zur „Docking-Animation“:</b> Wenn ein Molekül (wie Celecoxib in COX-1) zu sperrig für die Bindungstasche ist, weicht Boltz-2 beim Co-Folding an die äußere Proteinoberfläche aus. Für den direkten visuellen Vergleich an Position 523 führt diese Simulation den Wirkstoff gezielt in das aktive Zentrum ein, um die sterische Überlappung (Van-der-Waals-Clash) an Isoleucin-523 sichtbar zu machen.
                 </p>
             </div>
             <div class="flex justify-end pt-2">
@@ -314,78 +315,13 @@
             }
         };
 
-        // Fallback-SMILES/Geometrie-Baukasten, falls die alte cox_embedded_data.js ohne Ligand-Atome geladen ist
-        function injectSyntheticLigandAtoms(model, ligName, pocketCenter, gkCoord, argCoord) {
-            // Richtungsvektor von Taschenmitte Richtung Türsteher 523 (Seitentasche)
-            let dx = gkCoord.x - pocketCenter.x, dy = gkCoord.y - pocketCenter.y, dz = gkCoord.z - pocketCenter.z;
-            const dLen = Math.hypot(dx, dy, dz) || 1;
-            dx /= dLen; dy /= dLen; dz /= dLen;
-
-            // Richtungsvektor Richtung Arg-120
-            let ax = argCoord.x - pocketCenter.x, ay = argCoord.y - pocketCenter.y, az = argCoord.z - pocketCenter.z;
-            const aLen = Math.hypot(ax, ay, az) || 1;
-            ax /= aLen; ay /= aLen; az /= aLen;
-
-            // Senkrechter Vektor
-            let px = dy * az - dz * ay, py = dz * ax - dx * az, pz = dx * ay - dy * ax;
-            const pLen = Math.hypot(px, py, pz) || 1;
-            px /= pLen; py /= pLen; pz /= pLen;
-
-            const atoms = [];
-            function addA(elem, r1, r2, r3) {
-                atoms.push({
-                    elem, hetflag: true, chain: "L", resn: "LIG", resi: 1,
-                    x: pocketCenter.x + dx * r1 + ax * r2 + px * r3,
-                    y: pocketCenter.y + dy * r1 + ay * r2 + py * r3,
-                    z: pocketCenter.z + dz * r1 + az * r2 + pz * r3,
-                    bonds: [], bondOrder: []
-                });
-            }
-
-            // Zentraler Aromaten-Ring im Kanal
-            for (let i = 0; i < 6; i++) {
-                const ang = i * Math.PI / 3;
-                addA("C", 0.3 * Math.cos(ang), 1.35 * Math.sin(ang), 1.35 * Math.cos(ang));
-            }
-            for (let i = 0; i < 6; i++) {
-                atoms[i].bonds.push((i + 1) % 6, (i + 5) % 6);
-                atoms[i].bondOrder.push(1, 1);
-            }
-
-            if (ligName === "Celecoxib") {
-                // Sperriger Benzolsulfonamid-Arm, der gezielt Richtung Ile-523 / Val-523 ragt!
-                addA("C", 1.6, 0.2, 0.0);
-                addA("C", 2.7, 0.5, 0.4);
-                addA("C", 2.7,-0.3,-0.4);
-                addA("S", 3.9, 0.1, 0.0); // Sitzt direkt vor dem CD1-Atom von Ile-523 -> Deutlicher Clash in COX-1!
-                addA("O", 4.5, 1.2, 0.6);
-                addA("O", 4.5,-1.0, 0.5);
-                addA("N", 4.6, 0.2,-1.3);
-                // Bindungen verknüpfen
-                atoms[0].bonds.push(6); atoms[6].bonds.push(0, 7, 8);
-                atoms[7].bonds.push(6, 9); atoms[8].bonds.push(6, 9);
-                atoms[9].bonds.push(7, 8, 10, 11, 12);
-                atoms[10].bonds.push(9); atoms[11].bonds.push(9); atoms[12].bonds.push(9);
-            } else {
-                // Propionsäure / Carboxyl-Anker Richtung Arg-120
-                addA("C", -0.4, 2.5, 0.2);
-                addA("C", -0.2, 3.7, 0.0);
-                addA("O",  0.5, 4.4, 0.6);
-                addA("O", -0.9, 4.2,-0.8);
-                atoms[1].bonds.push(6); atoms[6].bonds.push(1, 7);
-                atoms[7].bonds.push(6, 8, 9); atoms[8].bonds.push(7); atoms[9].bonds.push(7);
-            }
-
-            model.addAtoms(atoms);
-            return model.selectedAtoms({chain: "L"});
-        }
-
         // App-Status
         let db = null;
         let currentEnzyme = "COX2";
         let currentLigand = "Celecoxib";
         let viewer = null;
-        let activeLayers = { hotspots: true, vdw: false, surface: false };
+        // WICHTIG: pocket_env (die 45 grauen Taschen-Stäbchen) ist standardmäßig AUS, damit die Sicht auf die 4 Hotspots frei ist!
+        let activeLayers = { hotspots: true, vdw: false, pocket_env: false, surface: false };
         let discoveredMatrix = {};
         let animFrameId = null;
 
@@ -468,7 +404,7 @@
             loadCurrentModel(false, true);
         }
 
-        // Findet alle Liganden-Atome zuverlässig (egal ob Chain L, Chain B oder HETATM)
+        // Findet alle Liganden-Atome zuverlässig
         function getLigandAtoms(model) {
             if (!model) return [];
             let atoms = model.selectedAtoms({chain: "L"});
@@ -477,7 +413,43 @@
             return atoms;
         }
 
-        // Berechnet die exakten Koordinaten der aktiven Tasche (zwischen Pos 523, Arg-120, Ser-530, Tyr-385)
+        // REPARATUR-FUNKTION: Stellt sicher, dass alle Liganden-Atome korrekte Elementsymbole und kovalente Bindungen besitzen!
+        function repairLigandBondsAndElements(ligAtoms) {
+            if (!ligAtoms || ligAtoms.length === 0) return;
+
+            // 1. Elementsymbol aus dem Atomnamen ableiten (z.B. "C01" -> "C", "O02" -> "O", "S1" -> "S", "F1" -> "F")
+            for (const a of ligAtoms) {
+                a.chain = "L";
+                a.hetflag = true;
+                const cleanName = (a.atom || a.elem || "C").replace(/[^A-Za-z]/g, "").toUpperCase();
+                if (cleanName.startsWith("CL")) a.elem = "Cl";
+                else if (cleanName.startsWith("BR")) a.elem = "Br";
+                else if (cleanName.length > 0) a.elem = cleanName[0];
+                else a.elem = "C";
+
+                a.bonds = [];
+                a.bondOrder = [];
+            }
+
+            // 2. Kovalente Bindungen anhand des 3D-Atomabstands (0.4 Å bis 1.92 Å) aufbauen
+            for (let i = 0; i < ligAtoms.length; i++) {
+                for (let j = i + 1; j < ligAtoms.length; j++) {
+                    const a1 = ligAtoms[i];
+                    const a2 = ligAtoms[j];
+                    const dist = Math.hypot(a1.x - a2.x, a1.y - a2.y, a1.z - a2.z);
+                    // Maximale Bindungslänge (für Schwefel S-O / S-N / S-C bis 1.92 Å, sonst 1.78 Å)
+                    const maxBond = (a1.elem === "S" || a2.elem === "S") ? 1.95 : 1.78;
+                    if (dist > 0.4 && dist <= maxBond) {
+                        a1.bonds.push(a2.index);
+                        a1.bondOrder.push(1);
+                        a2.bonds.push(a1.index);
+                        a2.bondOrder.push(1);
+                    }
+                }
+            }
+        }
+
+        // Berechnet die Geometrie der aktiven Tasche (zwischen Pos 523, Arg-120, Ser-530, Tyr-385)
         function getActivePocketGeometry(model, hs) {
             const gkAtoms = model.selectedAtoms({chain: "A", resi: hs.gatekeeper_523});
             const argAtoms = model.selectedAtoms({chain: "A", resi: hs.anchor_arg120});
@@ -496,47 +468,43 @@
             const serC = centerOf(serAtoms);
             const tyrC = centerOf(tyrAtoms);
 
-            // Aktives Kanal-Zentrum direkt vor dem Türsteher 523
             const pocketC = {
-                x: (gkC.x * 0.45 + serC.x * 0.25 + argC.x * 0.15 + tyrC.x * 0.15),
-                y: (gkC.y * 0.45 + serC.y * 0.25 + argC.y * 0.15 + tyrC.y * 0.15),
-                z: (gkC.z * 0.45 + serC.z * 0.25 + argC.z * 0.15 + tyrC.z * 0.15)
+                x: (gkC.x * 0.42 + serC.x * 0.28 + argC.x * 0.15 + tyrC.x * 0.15),
+                y: (gkC.y * 0.42 + serC.y * 0.28 + argC.y * 0.15 + tyrC.y * 0.15),
+                z: (gkC.z * 0.42 + serC.z * 0.28 + argC.z * 0.15 + tyrC.z * 0.15)
             };
             return { pocketC, gkC, argC, serC, tyrC };
         }
 
-        // Stellt sicher, dass der Wirkstoff im aktiven Zentrum liegt (oder injiziert ihn, falls er in v1 der .js fehlte)
-        function ensureLigandInActivePocket(model, entry) {
+        // Stellt sicher, dass der Wirkstoff zusammenhängend gebunden im aktiven Zentrum liegt
+        function prepareLigandInPocket(model, entry) {
             const hs = db.hotspots[entry.enzyme];
             const geom = getActivePocketGeometry(model, hs);
             let ligAtoms = getLigandAtoms(model);
 
-            if (ligAtoms.length === 0) {
-                // Falls noch die alte cox_embedded_data.js (ohne Chain L) geladen ist -> Wirkstoff live in der Tasche aufbauen!
-                ligAtoms = injectSyntheticLigandAtoms(model, entry.ligand, geom.pocketC, geom.gkC, geom.argC);
-                document.getElementById("lig_status_label").textContent = "⚡ Taschen-Pose aktiv";
-                return { ligAtoms, geom };
-            }
+            // Repariere Elemente & kovalente Bindungen, damit ein echtes Stäbchen-Molekül statt loser Kugeln entsteht!
+            repairLigandBondsAndElements(ligAtoms);
 
-            // Prüfen, ob Boltz-2 den Liganden (z.B. Celecoxib) außerhalb der Tasche (> 10 Å entfernt) geparkt hat
-            let lx = 0, ly = 0, lz = 0;
-            ligAtoms.forEach(a => { lx += a.x; ly += a.y; lz += a.z; });
-            lx /= ligAtoms.length; ly /= ligAtoms.length; lz /= ligAtoms.length;
+            if (ligAtoms.length > 0) {
+                let lx = 0, ly = 0, lz = 0;
+                ligAtoms.forEach(a => { lx += a.x; ly += a.y; lz += a.z; });
+                lx /= ligAtoms.length; ly /= ligAtoms.length; lz /= ligAtoms.length;
 
-            const distToPocket = Math.hypot(lx - geom.pocketC.x, ly - geom.pocketC.y, lz - geom.pocketC.z);
-            if (distToPocket > 10.0) {
-                // Verschiebe den echten Boltz-2-Liganden für den direkten Clash-Test an Position 523 in das aktive Zentrum!
-                const shiftX = geom.pocketC.x - lx;
-                const shiftY = geom.pocketC.y - ly;
-                const shiftZ = geom.pocketC.z - lz;
-                ligAtoms.forEach(a => {
-                    a.x += shiftX;
-                    a.y += shiftY;
-                    a.z += shiftZ;
-                });
-                document.getElementById("lig_status_label").textContent = "🎯 In aktive Tasche zentriert";
-            } else {
-                document.getElementById("lig_status_label").textContent = "✅ Boltz-2 Kanal-Pose";
+                const distToPocket = Math.hypot(lx - geom.pocketC.x, ly - geom.pocketC.y, lz - geom.pocketC.z);
+                if (distToPocket > 10.0) {
+                    // Falls Boltz-2 den sperrigen Liganden (Celecoxib) außerhalb der Tasche geparkt hat, in die Tasche holen
+                    const shiftX = geom.pocketC.x - lx;
+                    const shiftY = geom.pocketC.y - ly;
+                    const shiftZ = geom.pocketC.z - lz;
+                    ligAtoms.forEach(a => {
+                        a.x += shiftX;
+                        a.y += shiftY;
+                        a.z += shiftZ;
+                    });
+                    document.getElementById("lig_status_label").textContent = "🎯 In aktive Tasche zentriert";
+                } else {
+                    document.getElementById("lig_status_label").textContent = "✅ Boltz-2 Kanal-Pose";
+                }
             }
 
             return { ligAtoms, geom };
@@ -559,8 +527,7 @@
             viewer.clear();
             const model = viewer.addModel(entry.pdb_data, "pdb");
 
-            // Wirkstoff prüfen / in aktive Tasche setzen
-            const { geom } = ensureLigandInActivePocket(model, entry);
+            const { geom } = prepareLigandInPocket(model, entry);
             entry._activeGeom = geom;
 
             applySceneStyles(entry, true);
@@ -578,6 +545,17 @@
             renderMatrixTable();
         }
 
+        // Stil-Update NUR für den Liganden (wird während der Animation mit 60 FPS aufgerufen -> kein Ruckeln!)
+        function updateLigandStyleOnly() {
+            const ligStyle = {
+                stick: {colorscheme: "cyanCarbon", radius: 0.28},
+                sphere: activeLayers.vdw
+                    ? {colorscheme: "cyanCarbon", scale: 0.78, opacity: 0.90}
+                    : {colorscheme: "cyanCarbon", scale: 0.30}
+            };
+            viewer.setStyle({chain: "L"}, ligStyle);
+        }
+
         function applySceneStyles(entry, showInteractions = false) {
             viewer.setStyle({}, {});
             viewer.removeAllLabels();
@@ -589,23 +567,18 @@
             const isClash = (enz === "COX1" && entry.ligand === "Celecoxib");
             const geom = entry._activeGeom;
 
-            // 1. Protein-Grundgerüst (Chain A)
-            viewer.setStyle({chain: "A"}, {cartoon: {color: "#475569", opacity: 0.70}});
-            if (entry.pocket_residues) {
-                viewer.addStyle({chain: "A", resi: entry.pocket_residues}, {stick: {colorscheme: "grayCarbon", radius: 0.11, opacity: 0.50}});
+            // 1. Protein-Grundgerüst (Chain A) als ruhiges, halbtransparentes Bändermodell (Cartoon)
+            viewer.setStyle({chain: "A"}, {cartoon: {color: "#334155", opacity: 0.65}});
+
+            // Optionaler Layer: Übrige Taschen-Aminosäuren nur auf expliziten Wunsch ganz dünn einblenden
+            if (activeLayers.pocket_env && entry.pocket_residues) {
+                viewer.addStyle({chain: "A", resi: entry.pocket_residues}, {line: {colorscheme: "grayCarbon", opacity: 0.35}});
             }
 
-            // 2. Wirkstoff / Ligand (Hell-Cyan + kräftige Bindungen)
-            const ligStyle = {
-                stick: {colorscheme: "cyanCarbon", radius: 0.30},
-                sphere: activeLayers.vdw ? {colorscheme: "cyanCarbon", scale: 0.78, opacity: 0.90} : {colorscheme: "cyanCarbon", scale: 0.22}
-            };
-            viewer.setStyle({chain: "L"}, ligStyle);
-            viewer.setStyle({chain: "B"}, ligStyle);
-            viewer.setStyle({hetflag: true}, ligStyle);
+            // 2. Wirkstoff / Ligand (Als klares Ball-and-Stick Molekül in leuchtendem Cyan)
+            updateLigandStyleOnly();
 
-            // Label am Wirkstoff
-            if (geom) {
+            if (geom && showInteractions) {
                 viewer.addLabel(
                     LIGAND_META[entry.ligand].label,
                     {fontSize: 12, fontColor: "#020617", backgroundColor: "#22d3ee", backgroundOpacity: 0.92},
@@ -613,46 +586,45 @@
                 );
             }
 
-            // 3. Hotspots (Schlüssel-Aminosäuren)
+            // 3. Die 4 Schlüssel-Aminosäuren (Hotspots) klar und freigestellt hervorheben
             if (activeLayers.hotspots && hs) {
                 const gkColor = (enz === "COX1") ? "#f43f5e" : "#10b981";
-                const gkStyle = { stick: {color: gkColor, radius: 0.35} };
-                if (activeLayers.vdw) {
-                    gkStyle.sphere = {color: gkColor, scale: 0.85, opacity: 0.90};
-                }
+                const gkStyle = {
+                    stick: {color: gkColor, radius: 0.34},
+                    sphere: activeLayers.vdw ? {color: gkColor, scale: 0.85, opacity: 0.90} : {color: gkColor, scale: 0.28}
+                };
                 viewer.setStyle({chain: "A", resi: hs.gatekeeper_523}, gkStyle);
                 viewer.addLabel(
                     enz === "COX1" ? "🚪 Ile-523 (Groß: Blockiert!)" : "🚪 Val-523 (Klein: Seitentasche offen!)",
-                    {fontSize: 12, fontColor: "white", backgroundColor: gkColor, backgroundOpacity: 0.88},
+                    {fontSize: 12, fontColor: "white", backgroundColor: gkColor, backgroundOpacity: 0.90},
                     {chain: "A", resi: hs.gatekeeper_523}
                 );
 
-                viewer.setStyle({chain: "A", resi: hs.anchor_arg120}, {stick: {color: "#38bdf8", radius: 0.25}});
-                viewer.addLabel("⚓ Arg-120 (-COOH Anker)", {fontSize: 11, fontColor: "white", backgroundColor: "#0284c7", backgroundOpacity: 0.82}, {chain: "A", resi: hs.anchor_arg120});
+                viewer.setStyle({chain: "A", resi: hs.anchor_arg120}, {stick: {color: "#38bdf8", radius: 0.26}});
+                viewer.addLabel("⚓ Arg-120 (-COOH Anker)", {fontSize: 11, fontColor: "white", backgroundColor: "#0284c7", backgroundOpacity: 0.85}, {chain: "A", resi: hs.anchor_arg120});
 
-                viewer.setStyle({chain: "A", resi: hs.catalytic_ser530}, {stick: {color: "#fbbf24", radius: 0.25}});
-                viewer.addLabel("✂️ Ser-530", {fontSize: 11, fontColor: "black", backgroundColor: "#fbbf24", backgroundOpacity: 0.88}, {chain: "A", resi: hs.catalytic_ser530});
+                viewer.setStyle({chain: "A", resi: hs.catalytic_ser530}, {stick: {color: "#fbbf24", radius: 0.26}});
+                viewer.addLabel("✂️ Ser-530", {fontSize: 11, fontColor: "black", backgroundColor: "#fbbf24", backgroundOpacity: 0.90}, {chain: "A", resi: hs.catalytic_ser530});
 
-                viewer.setStyle({chain: "A", resi: hs.catalytic_tyr385}, {stick: {color: "#c084fc", radius: 0.22}});
-                viewer.addLabel("⚡ Tyr-385", {fontSize: 11, fontColor: "white", backgroundColor: "#7e22ce", backgroundOpacity: 0.82}, {chain: "A", resi: hs.catalytic_tyr385});
+                viewer.setStyle({chain: "A", resi: hs.catalytic_tyr385}, {stick: {color: "#c084fc", radius: 0.24}});
+                viewer.addLabel("⚡ Tyr-385", {fontSize: 11, fontColor: "white", backgroundColor: "#7e22ce", backgroundOpacity: 0.85}, {chain: "A", resi: hs.catalytic_tyr385});
             }
 
-            // 4. Visuelle Clash-Warnkugel (bei COX-1 + Celecoxib) oder Wechselwirkungslinien
-            if (geom) {
+            // 4. Visuelle Clash-Warnkugel oder Wechselwirkungslinie (nach dem Andocken)
+            if (geom && showInteractions) {
                 if (isClash) {
                     viewer.addSphere({
                         center: {
-                            x: geom.gkC.x * 0.65 + geom.pocketC.x * 0.35,
-                            y: geom.gkC.y * 0.65 + geom.pocketC.y * 0.35,
-                            z: geom.gkC.z * 0.65 + geom.pocketC.z * 0.35
+                            x: geom.gkC.x * 0.60 + geom.pocketC.x * 0.40,
+                            y: geom.gkC.y * 0.60 + geom.pocketC.y * 0.40,
+                            z: geom.gkC.z * 0.60 + geom.pocketC.z * 0.40
                         },
                         radius: 2.3,
                         color: "#ef4444",
                         alpha: 0.50,
                         wireframe: true
                     });
-                } else if (showInteractions) {
-                    // Zeichne grüne gestrichelte Bindungslinie zum Anker (Arg-120) bzw. zur Val-523 Seitentasche
+                } else {
                     const targetPt = (entry.ligand === "Celecoxib") ? geom.gkC : geom.argC;
                     viewer.addCylinder({
                         start: geom.pocketC,
@@ -668,13 +640,13 @@
             if (activeLayers.surface) {
                 const resList = entry.pocket_residues || [];
                 const sel = resList.length > 0 ? {chain: "A", resi: resList} : {chain: "A"};
-                viewer.addSurface($3Dmol.SurfaceType.VDW, {opacity: 0.52, color: "#cbd5e1"}, sel);
+                viewer.addSurface($3Dmol.SurfaceType.VDW, {opacity: 0.45, color: "#cbd5e1"}, sel);
             }
         }
 
         function toggleLayer(layerName) {
             activeLayers[layerName] = !activeLayers[layerName];
-            const btnMap = { hotspots: "tog_hotspots", vdw: "tog_vdw", surface: "tog_surface" };
+            const btnMap = { hotspots: "tog_hotspots", vdw: "tog_vdw", pocket_env: "tog_pocket_env", surface: "tog_surface" };
             const btn = document.getElementById(btnMap[layerName]);
             if (activeLayers[layerName]) {
                 btn.className = "px-2.5 py-1.5 rounded bg-indigo-600 text-white text-xs font-medium transition";
@@ -698,7 +670,7 @@
         }
 
         // =========================================================================
-        // GARANTIERT SICHTBARE LIVE-DOCKING FLUG-ANIMATION
+        // FLÜSSIGE 60-FPS LIVE-DOCKING ANIMATION (Aktualisiert nur den Liganden!)
         // =========================================================================
         function resetDockButton() {
             const btnText = document.getElementById("btn_dock_text");
@@ -720,21 +692,18 @@
 
             const geom = entry._activeGeom || getActivePocketGeometry(model, db.hotspots[currentEnzyme]);
 
-            // Einflug-Richtung: Vom Kanaleingang (Richtung Arg-120 nach außen) hinein zum katalytischen Zentrum (Ser-530)
+            // Einflug-Richtung: Vom Kanaleingang (Arg-120) hinein zum katalytischen Zentrum (Ser-530)
             let vx = geom.argC.x - geom.serC.x;
             let vy = geom.argC.y - geom.serC.y;
             let vz = geom.argC.z - geom.serC.z;
             const vLen = Math.hypot(vx, vy, vz) || 1;
             vx /= vLen; vy /= vLen; vz /= vLen;
 
-            // Zoome sanft auf die Bindungstasche, damit man den Einflug optimal im Blickfeld hat
-            const hs = db.hotspots[currentEnzyme];
-            if (hs) {
-                viewer.zoomTo({chain: "A", resi: [hs.gatekeeper_523, hs.anchor_arg120, hs.catalytic_ser530, hs.catalytic_tyr385]}, 250);
-            }
+            // Einmalig Protein-Szene vorab aufbauen (damit während der Flug-Frames kein teures Protein-Redraw nötig ist!)
+            applySceneStyles(entry, false);
 
             const targetCoords = ligAtoms.map(a => ({x: a.x, y: a.y, z: a.z}));
-            const totalFrames = 65;
+            const totalFrames = 60;
             let frame = 0;
             const isClash = (currentEnzyme === "COX1" && currentLigand === "Celecoxib");
 
@@ -745,23 +714,21 @@
                 let progress = frame / totalFrames;
                 let ease = 1 - Math.pow(1 - progress, 3);
 
-                // Startet 13 Å vor der Tasche und gleitet samt leichter Drehung hinein
-                let offsetDist = (1 - ease) * 13.0;
+                let offsetDist = (1 - ease) * 12.0;
 
-                // Bei COX-1 + Celecoxib prallt das Molekül an Ile-523 spürbar ab!
+                // Bei COX-1 + Celecoxib prallt das Molekül an Ile-523 spürbar zurück
                 if (isClash && progress > 0.72) {
-                    offsetDist += Math.sin((progress - 0.72) * Math.PI * 5) * 1.8 + 0.9;
+                    offsetDist += Math.sin((progress - 0.72) * Math.PI * 5) * 1.6 + 0.8;
                 }
 
-                const wobble = Math.sin(progress * Math.PI * 2) * (1 - ease) * 0.8;
-
                 for (let i = 0; i < ligAtoms.length; i++) {
-                    ligAtoms[i].x = targetCoords[i].x + vx * offsetDist + wobble;
-                    ligAtoms[i].y = targetCoords[i].y + vy * offsetDist - wobble;
+                    ligAtoms[i].x = targetCoords[i].x + vx * offsetDist;
+                    ligAtoms[i].y = targetCoords[i].y + vy * offsetDist;
                     ligAtoms[i].z = targetCoords[i].z + vz * offsetDist;
                 }
 
-                applySceneStyles(entry, false);
+                // Performance-Boost: Nur den Liganden neu zeichnen, Protein & Labels bleiben im GPU-Puffer!
+                updateLigandStyleOnly();
                 viewer.render();
 
                 if (frame < totalFrames) {
