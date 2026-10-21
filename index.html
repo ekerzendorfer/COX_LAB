@@ -16,7 +16,7 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } }
+        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); } 50% { box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); } }
         .clash-alert { animation: pulse-red 2s infinite; }
     </style>
 </head>
@@ -40,7 +40,7 @@
                 ⏳ Lade Strukturdaten...
             </span>
 
-            <label class="cursor-pointer text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5" title="Optional: Eigene cox_embedded_data.js oder JSON laden">
+            <label class="cursor-pointer text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5" title="Daten laden">
                 <span>📂 Daten laden</span>
                 <input type="file" id="file_input" accept=".js,.json,.pdb,.cif" class="hidden" onchange="handleFileUpload(event)">
             </label>
@@ -88,16 +88,14 @@
 
             <!-- BOTTOM FLOATING BAR: Kamera-Regie & Darstellungs-Layer -->
             <div class="relative z-10 flex flex-col gap-2 pointer-events-auto">
-                <!-- Legende -->
                 <div class="flex flex-wrap items-center gap-2 text-[11px]">
-                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> <b>Wirkstoff (Ligand)</b></span>
-                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> <b>Ile-523 (COX-1):</b> Blockiert Seitentasche</span>
-                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> <b>Val-523 (COX-2):</b> Öffnet Seitentasche</span>
-                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> <b>Arg-120:</b> -COOH Anker</span>
-                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> <b>Ser-530:</b> ASS-Ziel</span>
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> <b>Wirkstoff</b></span>
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> <b>Ile-523 (COX-1):</b> Blockiert</span>
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> <b>Val-523 (COX-2):</b> Offen</span>
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> <b>Arg-120:</b> Anker</span>
+                    <span class="glass px-2.5 py-1 rounded-md flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> <b>Ser-530:</b> Katalyse</span>
                 </div>
 
-                <!-- Kamera- und Layer-Buttons -->
                 <div class="glass p-2 rounded-xl flex flex-wrap items-center justify-between gap-2 shadow-xl">
                     <div class="flex items-center space-x-1.5">
                         <span class="text-[11px] text-slate-400 font-semibold px-1">🎥 Kamera:</span>
@@ -109,8 +107,8 @@
                     <div class="flex items-center space-x-1.5">
                         <span class="text-[11px] text-slate-400 font-semibold px-1">👁️ Layer:</span>
                         <button id="tog_hotspots" onclick="toggleLayer('hotspots')" class="px-2.5 py-1.5 rounded bg-indigo-600 text-white text-xs font-medium transition">🏷️ Hotspots</button>
-                        <button id="tog_vdw" onclick="toggleLayer('vdw')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition" title="Zeigt echte Atomradien für Sterischen Clash">🫧 VdW-Kugeln (Clash)</button>
-                        <button id="tog_pocket_env" onclick="toggleLayer('pocket_env')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition" title="Blendet die übrigen Taschen-Aminosäuren dezent ein">🕸️ Taschen-Gerüst</button>
+                        <button id="tog_vdw" onclick="toggleLayer('vdw')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition" title="Van-der-Waals-Volumen">🫧 VdW-Kugeln</button>
+                        <button id="tog_pocket_env" onclick="toggleLayer('pocket_env')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition" title="Taschen-Gerüst">🕸️ Taschen-Gerüst</button>
                         <button id="tog_surface" onclick="toggleLayer('surface')" class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition">🔪 Taschen-Höhle</button>
                     </div>
                 </div>
@@ -197,24 +195,7 @@
                 <button onclick="closeModal('modal_method')" class="text-slate-400 hover:text-white text-xl">&times;</button>
             </div>
             <div class="text-xs text-slate-300 space-y-3 leading-relaxed">
-                <p>Alle 10 Enzym-Wirkstoff-Komplexe in dieser Anwendung wurden mit dem Open-Source-Modell <b>Boltz-2</b> (MIT-Lizenz, Weiterentwicklung der AlphaFold-3-Architektur) in Google Colab berechnet, anschließend mit <b>BioPython</b> im 3D-Raum exakt aufeinander ausgerichtet (Superimposition) und für das Web komprimiert.</p>
-                <div class="grid grid-cols-3 gap-2 text-center my-3">
-                    <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                        <div class="text-lg mb-1">🔤 1. Input (1D)</div>
-                        <div class="text-[11px] text-slate-400">Aminosäuresequenz (FASTA) von COX-1/2 + Strukturcode (SMILES) des Schmerzmittels</div>
-                    </div>
-                    <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                        <div class="text-lg mb-1">🌪️ 2. Co-Folding</div>
-                        <div class="text-[11px] text-slate-400">Ein Diffusions-Netzwerk faltet Protein und Wirkstoff gleichzeitig aus einer Atomwolke (Induced Fit)</div>
-                    </div>
-                    <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                        <div class="text-lg mb-1">📊 3. Affinität</div>
-                        <div class="text-[11px] text-slate-400">Das Boltz-2 Affinity-Modul schätzt die Bindungswahrscheinlichkeit und den IC₅₀-Wert</div>
-                    </div>
-                </div>
-                <p class="bg-indigo-950/50 border border-indigo-500/30 p-3 rounded-lg text-indigo-200">
-                    <b>Didaktischer Hinweis zur „Docking-Animation“:</b> In der Natur falten und bewegen sich Enzym und Wirkstoff im Nanosekunden-Bereich dynamisch umeinander. Für den direkten visuellen Vergleich an Position 523 führt diese Simulation den vollständig verknüpften 3D-Wirkstoff gezielt in das aktive Zentrum ein, um die sterische Überlappung (Van-der-Waals-Clash) an Isoleucin-523 sichtbar zu machen.
-                </p>
+                <p>Alle 10 Enzym-Wirkstoff-Komplexe wurden mit dem Open-Source-Modell <b>Boltz-2</b> (AlphaFold-3-Architektur) berechnet, mit <b>BioPython</b> im 3D-Raum exakt übereinandergelegt und für das Web komprimiert.</p>
             </div>
             <div class="flex justify-end pt-2">
                 <button onclick="closeModal('modal_method')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg">Verstanden</button>
@@ -222,7 +203,7 @@
         </div>
     </div>
 
-    <!-- ================= MODAL 2: ERKENNTNIS-CHECK (LÜCKENTEXT) ================= -->
+    <!-- ================= MODAL 2: ERKENNTNIS-CHECK ================= -->
     <div id="modal_quiz" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -238,31 +219,24 @@
                         <option value="ibu">Ibuprofen</option>
                         <option value="cel">Celecoxib</option>
                     </select>
-                    sind schmal gebaut und verankern sich mit ihrer Carboxylgruppe an <b>Arginin-120</b>. Sie blockieren sowohl COX-1 als auch COX-2 (<b>unselektiv</b>).
+                    sind schmal gebaut und verankern sich an <b>Arginin-120</b> (unselektiv).
                 </p>
                 <p>
                     2. In <b>COX-1</b> ragt an Position 523 die Aminosäure 
                     <select id="q2" class="bg-slate-800 border border-slate-600 rounded px-2 py-0.5 text-indigo-300 font-semibold">
                         <option value="">-- wählen --</option>
                         <option value="val">Valin (kleiner)</option>
-                        <option value="ile">Isoleucin (um eine -CH₂-Gruppe größer)</option>
+                        <option value="ile">Isoleucin (größer)</option>
                     </select>
-                    in den Kanal. In <b>COX-2</b> sitzt dort stattdessen das kleinere <b>Valin-523</b>, wodurch sich eine zusätzliche 
-                    <select id="q3" class="bg-slate-800 border border-slate-600 rounded px-2 py-0.5 text-indigo-300 font-semibold">
-                        <option value="">-- wählen --</option>
-                        <option value="side">hydrophobe Seitentasche</option>
-                        <option value="disulf">Disulfidbrücke</option>
-                    </select>
-                    öffnet.
+                    in den Kanal, während in COX-2 das kleinere <b>Valin-523</b> eine Seitentasche öffnet.
                 </p>
                 <p>
-                    3. Da <b>Celecoxib</b> einen sperrigen Sulfonamid-Rest (-SO₂NH₂) besitzt, kommt es in COX-1 zu einem 
+                    3. Da <b>Celecoxib</b> einen sperrigen Sulfonamid-Rest besitzt, kommt es in COX-1 zu einem 
                     <select id="q4" class="bg-slate-800 border border-slate-600 rounded px-2 py-0.5 text-indigo-300 font-semibold">
                         <option value="">-- wählen --</option>
-                        <option value="clash">sterischen Clash (Abstoßung der Elektronenhüllen)</option>
+                        <option value="clash">sterischen Clash (Abstoßung)</option>
                         <option value="cov">kovalenten Bindungsbruch</option>
                     </select>.
-                    Das Magenschutz-Enzym COX-1 bleibt daher weitgehend intakt!
                 </p>
             </div>
 
@@ -279,189 +253,98 @@
     <script>
         const LIGAND_META = {
             "Arachidonsaeure": {
-                label: "🩸 Arachidonsäure",
-                badge: "Natürliches Substrat",
-                desc: "Ungesättigte Fettsäure (20 C-Atome, gewinkelte cis-Doppelbindungen). Liegt im katalytischen Kanal zwischen Arg-120 und Tyr-385.",
-                diag_COX1: "✅ <b>Natürliche Reaktion:</b> Die Fettsäure liegt passgenau im Kanal (Carboxylgruppe an Arg-120, Kette bei Tyr-385). COX-1 produziert schützende Magen-Prostaglandine.",
-                diag_COX2: "✅ <b>Natürliche Reaktion:</b> Die Fettsäure wird im Kanal von COX-2 zu entzündungsfördernden Prostaglandinen umgesetzt (Schmerz & Fieber entstehen)."
+                label: "🩸 Arachidonsäure", badge: "Natürliches Substrat",
+                desc: "Ungesättigte Fettsäure (20 C-Atome). Liegt im Kanal zwischen Arg-120 und Tyr-385.",
+                diag_COX1: "✅ <b>Natürliche Reaktion:</b> Die Fettsäure liegt passgenau im Kanal von COX-1.",
+                diag_COX2: "✅ <b>Natürliche Reaktion:</b> Die Fettsäure wird im Kanal von COX-2 umgesetzt."
             },
             "Ibuprofen": {
-                label: "💊 Ibuprofen",
-                badge: "Klassisches NSAR (unselektiv)",
-                desc: "Schmales, kompaktes Molekül (Benzolring + Isobutyl-Rest + Propionsäure-Gruppe -COOH als ionischer Anker für Arg-120).",
-                diag_COX1: "⚠️ <b>Unselektive Blockade:</b> Das schmale Ibuprofen passt mühelos an Isoleucin-523 vorbei in COX-1. Folge: Der Magenschutz fällt weg (Nebenwirkung bei Dauertherapie!).",
-                diag_COX2: "✅ <b>Gewünschte Schmerzhemmung:</b> Ibuprofen blockiert den Kanal von COX-2 zuverlässig – es braucht die zusätzliche Seitentasche gar nicht."
+                label: "💊 Ibuprofen", badge: "Klassisches NSAR (unselektiv)",
+                desc: "Kompaktes Molekül mit Propionsäure-Gruppe (-COOH) als Anker für Arg-120.",
+                diag_COX1: "⚠️ <b>Unselektive Blockade:</b> Passt mühelos an Isoleucin-523 vorbei in COX-1.",
+                diag_COX2: "✅ <b>Schmerzhemmung:</b> Blockiert den Kanal von COX-2 zuverlässig."
             },
             "Aspirin": {
-                label: "💊 Aspirin (ASS)",
-                badge: "Irreversibler Hemmer",
-                desc: "Acetylsalicylsäure (Benzolring mit Carboxylgruppe -COOH und Ester-Acetylgruppe -OCOCH₃, die auf Serin-530 übertragen wird).",
-                diag_COX1: "⚠️ <b>Dauerhafte Blockade:</b> ASS acetyliert Serin-530 in COX-1 irreversibel. Hemmt die Blutgerinnung und schwächt den Magenschutz.",
-                diag_COX2: "✅ <b>Schmerzhemmung:</b> Auch in COX-2 wird Serin-530 durch den Acetyl-Übertrag blockiert."
+                label: "💊 Aspirin (ASS)", badge: "Irreversibler Hemmer",
+                desc: "Acetylsalicylsäure. Überträgt Acetylgruppe auf Serin-530.",
+                diag_COX1: "⚠️ <b>Dauerhafte Blockade:</b> ASS acetyliert Serin-530 in COX-1 irreversibel.",
+                diag_COX2: "✅ <b>Schmerzhemmung:</b> Blockiert COX-2 ebenfalls."
             },
             "Naproxen": {
-                label: "💊 Naproxen",
-                badge: "Klassisches NSAR (unselektiv)",
-                desc: "Flaches Naphthalin-Doppelringsystem mit Methoxy-Gruppe und Propionsäure-Anker (-COOH). Schmal genug für beide Enzym-Kanäle.",
-                diag_COX1: "⚠️ <b>Unselektive Blockade:</b> Trotz des Doppelrings ist Naproxen flach genug, um nicht mit Isoleucin-523 zu kollidieren. COX-1 wird gehemmt.",
-                diag_COX2: "✅ <b>Starke Entzündungshemmung:</b> Hohe Affinität in der hydrophoben Tasche von COX-2."
+                label: "💊 Naproxen", badge: "Klassisches NSAR (unselektiv)",
+                desc: "Flaches Naphthalin-Doppelringsystem mit Propionsäure-Anker.",
+                diag_COX1: "⚠️ <b>Unselektive Blockade:</b> Zu flach für einen Clash an Ile-523.",
+                diag_COX2: "✅ <b>Starke Entzündungshemmung:</b> Hohe Affinität in COX-2."
             },
             "Celecoxib": {
-                label: "🎯 Celecoxib (Coxib)",
-                badge: "Selektiver COX-2-Hemmer",
-                desc: "Besitzt eine starre, Y-förmige 3-Ring-Struktur (Pyrazol-Kern mit -CF₃, Tolyl-Ring und einem sperrigen Benzolsulfonamid-Rest -SO₂NH₂).",
-                diag_COX1: "🛑 <b>STERISCHER CLASH AN ILE-523!</b> Die größere Seitenkette von Isoleucin-523 versperrt die Seitentasche. Der Sulfonamid-Rest (-SO₂NH₂) von Celecoxib kollidiert direkt mit Ile-523 (rote Warnkugel & VdW-Überlappung!).",
-                diag_COX2: "🎉 <b>PERFEKTE SELEKTIVITÄT!</b> Da Valin-523 um eine -CH₂-Gruppe kleiner ist, öffnet sich die Seitentasche. Der Sulfonamid-Rest von Celecoxib rastet ohne Clash direkt neben Val-523 ein!"
+                label: "🎯 Celecoxib (Coxib)", badge: "Selektiver COX-2-Hemmer",
+                desc: "Y-förmige 3-Ring-Struktur mit sperrigem Benzolsulfonamid-Rest (-SO₂NH₂).",
+                diag_COX1: "🛑 <b>STERISCHER CLASH AN ILE-523!</b> Der Sulfonamid-Rest kollidiert direkt mit der großen Ile-523 Seitenkette (rote Warnkugel!). Magen bleibt geschützt.",
+                diag_COX2: "🎉 <b>PERFEKTE PASSFORM!</b> Valin-523 ist kleiner, die Seitentasche ist offen – Celecoxib rastet perfekt ein."
             }
         };
 
-        // =========================================================================
-        // EXAKTE CHEMISCHE 3D-MOLEKÜL-VORLAGEN (Für garantierten SDF/MOL-V2000 Export)
-        // =========================================================================
         const LIGAND_TEMPLATES = {
             "Ibuprofen": {
                 atoms: [
-                    {e:"C", u: 0.0, v: 1.40, w: 0.0},
-                    {e:"C", u: 0.9, v: 0.70, w: 0.8},
-                    {e:"C", u: 0.9, v:-0.70, w: 0.8},
-                    {e:"C", u: 0.0, v:-1.40, w: 0.0},
-                    {e:"C", u:-0.9, v:-0.70, w:-0.8},
-                    {e:"C", u:-0.9, v: 0.70, w:-0.8},
-                    {e:"C", u: 0.0, v: 2.90, w: 0.0},
-                    {e:"C", u:-1.2, v: 3.45, w: 0.7},
-                    {e:"C", u: 1.1, v: 3.55, w:-0.6},
-                    {e:"O", u: 2.1, v: 3.00, w:-1.0},
-                    {e:"O", u: 1.0, v: 4.80, w:-0.7},
-                    {e:"C", u: 0.0, v:-2.90, w: 0.0},
-                    {e:"C", u:-1.1, v:-3.65, w: 0.7},
-                    {e:"C", u:-0.9, v:-5.15, w: 0.6},
-                    {e:"C", u:-2.4, v:-3.25, w: 0.1}
+                    {e:"C", u: 0.0, v: 1.40, w: 0.0},{e:"C", u: 0.9, v: 0.70, w: 0.8},{e:"C", u: 0.9, v:-0.70, w: 0.8},
+                    {e:"C", u: 0.0, v:-1.40, w: 0.0},{e:"C", u:-0.9, v:-0.70, w:-0.8},{e:"C", u:-0.9, v: 0.70, w:-0.8},
+                    {e:"C", u: 0.0, v: 2.90, w: 0.0},{e:"C", u:-1.2, v: 3.45, w: 0.7},{e:"C", u: 1.1, v: 3.55, w:-0.6},
+                    {e:"O", u: 2.1, v: 3.00, w:-1.0},{e:"O", u: 1.0, v: 4.80, w:-0.7},{e:"C", u: 0.0, v:-2.90, w: 0.0},
+                    {e:"C", u:-1.1, v:-3.65, w: 0.7},{e:"C", u:-0.9, v:-5.15, w: 0.6},{e:"C", u:-2.4, v:-3.25, w: 0.1}
                 ],
-                bonds: [
-                    [0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],
-                    [0,6,1],[6,7,1],[6,8,1],[8,9,2],[8,10,1],
-                    [3,11,1],[11,12,1],[12,13,1],[12,14,1]
-                ]
+                bonds: [[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],[0,6,1],[6,7,1],[6,8,1],[8,9,2],[8,10,1],[3,11,1],[11,12,1],[12,13,1],[12,14,1]]
             },
             "Aspirin": {
                 atoms: [
-                    {e:"C", u:-0.2, v: 1.20, w: 0.0},
-                    {e:"C", u: 0.2, v: 0.40, w: 1.1},
-                    {e:"C", u: 0.2, v:-0.98, w: 1.0},
-                    {e:"C", u:-0.2, v:-1.55, w:-0.2},
-                    {e:"C", u:-0.6, v:-0.75, w:-1.3},
-                    {e:"C", u:-0.6, v: 0.62, w:-1.2},
-                    {e:"C", u:-0.2, v: 2.68, w: 0.1},
-                    {e:"O", u: 0.6, v: 3.25, w: 0.9},
-                    {e:"O", u:-1.0, v: 3.35, w:-0.6},
-                    {e:"O", u: 0.7, v: 0.95, w: 2.3},
-                    {e:"C", u: 1.6, v: 0.25, w: 3.1},
-                    {e:"O", u: 2.0, v:-0.88, w: 2.8},
+                    {e:"C", u:-0.2, v: 1.20, w: 0.0},{e:"C", u: 0.2, v: 0.40, w: 1.1},{e:"C", u: 0.2, v:-0.98, w: 1.0},
+                    {e:"C", u:-0.2, v:-1.55, w:-0.2},{e:"C", u:-0.6, v:-0.75, w:-1.3},{e:"C", u:-0.6, v: 0.62, w:-1.2},
+                    {e:"C", u:-0.2, v: 2.68, w: 0.1},{e:"O", u: 0.6, v: 3.25, w: 0.9},{e:"O", u:-1.0, v: 3.35, w:-0.6},
+                    {e:"O", u: 0.7, v: 0.95, w: 2.3},{e:"C", u: 1.6, v: 0.25, w: 3.1},{e:"O", u: 2.0, v:-0.88, w: 2.8},
                     {e:"C", u: 2.1, v: 0.95, w: 4.3}
                 ],
-                bonds: [
-                    [0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],
-                    [0,6,1],[6,7,2],[6,8,1],
-                    [1,9,1],[9,10,1],[10,11,2],[10,12,1]
-                ]
+                bonds: [[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],[0,6,1],[6,7,2],[6,8,1],[1,9,1],[9,10,1],[10,11,2],[10,12,1]]
             },
             "Naproxen": {
                 atoms: [
-                    {e:"C", u: 0.0, v: 0.70, w: 0.0},
-                    {e:"C", u: 0.0, v:-0.70, w: 0.0},
-                    {e:"C", u: 0.8, v: 1.40, w: 0.9},
-                    {e:"C", u: 0.8, v: 2.80, w: 0.9},
-                    {e:"C", u: 0.0, v: 3.50, w: 0.0},
-                    {e:"C", u:-0.8, v: 2.80, w:-0.9},
-                    {e:"C", u:-0.8, v:-1.40, w:-0.9},
-                    {e:"C", u:-0.8, v:-2.80, w:-0.9},
-                    {e:"C", u: 0.0, v:-3.50, w: 0.0},
-                    {e:"C", u: 0.8, v:-2.80, w: 0.9},
-                    {e:"C", u: 1.6, v: 3.55, w: 1.9},
-                    {e:"C", u: 2.9, v: 2.90, w: 2.2},
-                    {e:"C", u: 0.9, v: 4.75, w: 2.5},
-                    {e:"O", u:-0.2, v: 5.10, w: 2.1},
-                    {e:"O", u: 1.6, v: 5.40, w: 3.3},
-                    {e:"O", u:-1.6, v:-3.50, w:-1.8},
-                    {e:"C", u:-1.7, v:-4.90, w:-1.7}
+                    {e:"C", u: 0.0, v: 0.70, w: 0.0},{e:"C", u: 0.0, v:-0.70, w: 0.0},{e:"C", u: 0.8, v: 1.40, w: 0.9},
+                    {e:"C", u: 0.8, v: 2.80, w: 0.9},{e:"C", u: 0.0, v: 3.50, w: 0.0},{e:"C", u:-0.8, v: 2.80, w:-0.9},
+                    {e:"C", u:-0.8, v:-1.40, w:-0.9},{e:"C", u:-0.8, v:-2.80, w:-0.9},{e:"C", u: 0.0, v:-3.50, w: 0.0},
+                    {e:"C", u: 0.8, v:-2.80, w: 0.9},{e:"C", u: 1.6, v: 3.55, w: 1.9},{e:"C", u: 2.9, v: 2.90, w: 2.2},
+                    {e:"C", u: 0.9, v: 4.75, w: 2.5},{e:"O", u:-0.2, v: 5.10, w: 2.1},{e:"O", u: 1.6, v: 5.40, w: 3.3},
+                    {e:"O", u:-1.6, v:-3.50, w:-1.8},{e:"C", u:-1.7, v:-4.90, w:-1.7}
                 ],
-                bonds: [
-                    [0,1,2],[0,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],
-                    [1,6,1],[6,7,2],[7,8,1],[8,9,2],[9,1,1],
-                    [3,10,1],[10,11,1],[10,12,1],[12,13,2],[12,14,1],
-                    [7,15,1],[15,16,1]
-                ]
+                bonds: [[0,1,2],[0,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],[1,6,1],[6,7,2],[7,8,1],[8,9,2],[9,1,1],[3,10,1],[10,11,1],[10,12,1],[12,13,2],[12,14,1],[7,15,1],[15,16,1]]
             },
             "Arachidonsaeure": {
                 atoms: [
-                    {e:"O", u: 0.6, v: 4.50, w:-0.5},
-                    {e:"O", u:-1.1, v: 4.20, w: 0.6},
-                    {e:"C", u:-0.2, v: 3.75, w: 0.0},
-                    {e:"C", u:-0.2, v: 2.25, w: 0.0},
-                    {e:"C", u: 0.7, v: 1.55, w: 0.9},
-                    {e:"C", u: 0.6, v: 0.05, w: 0.9},
-                    {e:"C", u:-0.3, v:-0.65, w: 0.1},
-                    {e:"C", u:-0.5, v:-2.02, w: 0.1},
-                    {e:"C", u: 0.3, v:-2.90, w: 1.0},
-                    {e:"C", u: 0.1, v:-4.35, w: 0.8},
-                    {e:"C", u:-0.9, v:-4.95, w: 0.1},
-                    {e:"C", u:-1.9, v:-4.20, w:-0.7},
-                    {e:"C", u:-2.2, v:-2.80, w:-0.4},
-                    {e:"C", u:-1.6, v:-1.75, w:-1.0},
-                    {e:"C", u:-2.0, v:-0.35, w:-0.8},
-                    {e:"C", u:-1.5, v: 0.65, w:-1.8},
-                    {e:"C", u:-0.5, v: 1.55, w:-1.6},
-                    {e:"C", u:-0.1, v: 2.55, w:-2.6},
-                    {e:"C", u: 1.1, v: 3.35, w:-2.3},
-                    {e:"C", u: 1.5, v: 4.30, w:-3.4},
-                    {e:"C", u: 2.7, v: 5.10, w:-3.1},
+                    {e:"O", u: 0.6, v: 4.50, w:-0.5},{e:"O", u:-1.1, v: 4.20, w: 0.6},{e:"C", u:-0.2, v: 3.75, w: 0.0},
+                    {e:"C", u:-0.2, v: 2.25, w: 0.0},{e:"C", u: 0.7, v: 1.55, w: 0.9},{e:"C", u: 0.6, v: 0.05, w: 0.9},
+                    {e:"C", u:-0.3, v:-0.65, w: 0.1},{e:"C", u:-0.5, v:-2.02, w: 0.1},{e:"C", u: 0.3, v:-2.90, w: 1.0},
+                    {e:"C", u: 0.1, v:-4.35, w: 0.8},{e:"C", u:-0.9, v:-4.95, w: 0.1},{e:"C", u:-1.9, v:-4.20, w:-0.7},
+                    {e:"C", u:-2.2, v:-2.80, w:-0.4},{e:"C", u:-1.6, v:-1.75, w:-1.0},{e:"C", u:-2.0, v:-0.35, w:-0.8},
+                    {e:"C", u:-1.5, v: 0.65, w:-1.8},{e:"C", u:-0.5, v: 1.55, w:-1.6},{e:"C", u:-0.1, v: 2.55, w:-2.6},
+                    {e:"C", u: 1.1, v: 3.35, w:-2.3},{e:"C", u: 1.5, v: 4.30, w:-3.4},{e:"C", u: 2.7, v: 5.10, w:-3.1},
                     {e:"C", u: 3.1, v: 6.00, w:-4.2}
                 ],
-                bonds: [
-                    [2,0,2],[2,1,1],[2,3,1],[3,4,1],[4,5,1],[5,6,1],[6,7,2],[7,8,1],[8,9,1],[9,10,2],
-                    [10,11,1],[11,12,1],[12,13,2],[13,14,1],[14,15,1],[15,16,2],[16,17,1],[17,18,1],[18,19,1],[19,20,1],[20,21,1]
-                ]
+                bonds: [[2,0,2],[2,1,1],[2,3,1],[3,4,1],[4,5,1],[5,6,1],[6,7,2],[7,8,1],[8,9,1],[9,10,2],[10,11,1],[11,12,1],[12,13,2],[13,14,1],[14,15,1],[15,16,2],[16,17,1],[17,18,1],[18,19,1],[19,20,1],[20,21,1]]
             },
             "Celecoxib": {
                 atoms: [
-                    {e:"N", u: 0.8, v: 0.30, w: 0.0},
-                    {e:"N", u: 0.2, v: 1.50, w: 0.2},
-                    {e:"C", u:-1.1, v: 1.25, w: 0.3},
-                    {e:"C", u:-1.4, v:-0.10, w: 0.1},
-                    {e:"C", u:-0.2, v:-0.70, w:-0.1},
-                    {e:"C", u:-2.1, v: 2.35, w: 0.5},
-                    {e:"F", u:-1.6, v: 3.55, w: 0.3},
-                    {e:"F", u:-3.2, v: 2.20, w:-0.3},
-                    {e:"F", u:-2.5, v: 2.30, w: 1.8},
-                    {e:"C", u:-0.1, v:-2.15, w:-0.3},
-                    {e:"C", u: 1.1, v:-2.85, w:-0.1},
-                    {e:"C", u: 1.1, v:-4.22, w:-0.3},
-                    {e:"C", u:-0.1, v:-4.90, w:-0.7},
-                    {e:"C", u:-1.3, v:-4.20, w:-0.9},
-                    {e:"C", u:-1.3, v:-2.82, w:-0.7},
-                    {e:"C", u:-0.1, v:-6.38, w:-0.9},
-                    {e:"C", u: 2.2, v: 0.15, w: 0.0},
-                    {e:"C", u: 2.8, v:-0.85, w: 0.7},
-                    {e:"C", u: 4.2, v:-0.98, w: 0.7},
-                    {e:"C", u: 4.9, v:-0.10, w: 0.0},
-                    {e:"C", u: 4.3, v: 0.90, w:-0.7},
-                    {e:"C", u: 2.9, v: 1.02, w:-0.7},
-                    {e:"S", u: 6.6, v:-0.25, w: 0.0},
-                    {e:"O", u: 7.1, v:-1.55, w: 0.4},
-                    {e:"O", u: 7.2, v: 0.85, w: 0.8},
-                    {e:"N", u: 7.1, v: 0.05, w:-1.5}
+                    {e:"N", u: 0.8, v: 0.30, w: 0.0},{e:"N", u: 0.2, v: 1.50, w: 0.2},{e:"C", u:-1.1, v: 1.25, w: 0.3},
+                    {e:"C", u:-1.4, v:-0.10, w: 0.1},{e:"C", u:-0.2, v:-0.70, w:-0.1},{e:"C", u:-2.1, v: 2.35, w: 0.5},
+                    {e:"F", u:-1.6, v: 3.55, w: 0.3},{e:"F", u:-3.2, v: 2.20, w:-0.3},{e:"F", u:-2.5, v: 2.30, w: 1.8},
+                    {e:"C", u:-0.1, v:-2.15, w:-0.3},{e:"C", u: 1.1, v:-2.85, w:-0.1},{e:"C", u: 1.1, v:-4.22, w:-0.3},
+                    {e:"C", u:-0.1, v:-4.90, w:-0.7},{e:"C", u:-1.3, v:-4.20, w:-0.9},{e:"C", u:-1.3, v:-2.82, w:-0.7},
+                    {e:"C", u:-0.1, v:-6.38, w:-0.9},{e:"C", u: 2.2, v: 0.15, w: 0.0},{e:"C", u: 2.8, v:-0.85, w: 0.7},
+                    {e:"C", u: 4.2, v:-0.98, w: 0.7},{e:"C", u: 4.9, v:-0.10, w: 0.0},{e:"C", u: 4.3, v: 0.90, w:-0.7},
+                    {e:"C", u: 2.9, v: 1.02, w:-0.7},{e:"S", u: 6.6, v:-0.25, w: 0.0},{e:"O", u: 7.1, v:-1.55, w: 0.4},
+                    {e:"O", u: 7.2, v: 0.85, w: 0.8},{e:"N", u: 7.1, v: 0.05, w:-1.5}
                 ],
-                bonds: [
-                    [0,1,1],[1,2,2],[2,3,1],[3,4,2],[4,0,1],
-                    [2,5,1],[5,6,1],[5,7,1],[5,8,1],
-                    [4,9,1],[9,10,2],[10,11,1],[11,12,2],[12,13,1],[13,14,2],[14,9,1],[12,15,1],
-                    [0,16,1],[16,17,2],[17,18,1],[18,19,2],[19,20,1],[20,21,2],[21,16,1],
-                    [19,22,1],[22,23,2],[22,24,2],[22,25,1]
-                ]
+                bonds: [[0,1,1],[1,2,2],[2,3,1],[3,4,2],[4,0,1],[2,5,1],[5,6,1],[5,7,1],[5,8,1],[4,9,1],[9,10,2],[10,11,1],[11,12,2],[12,13,1],[13,14,2],[14,9,1],[12,15,1],[0,16,1],[16,17,2],[17,18,1],[18,19,2],[19,20,1],[20,21,2],[21,16,1],[19,22,1],[22,23,2],[22,24,2],[22,25,1]]
             }
         };
 
-        // App-Status
         let db = null;
         let currentEnzyme = "COX2";
         let currentLigand = "Celecoxib";
@@ -472,10 +355,7 @@
         let animFrameId = null;
 
         window.addEventListener("DOMContentLoaded", async () => {
-            viewer = $3Dmol.createViewer("viewer_3d", {
-                backgroundColor: "#020617",
-                antialias: true
-            });
+            viewer = $3Dmol.createViewer("viewer_3d", { backgroundColor: "#020617", antialias: true });
 
             if (typeof COX_COMPRESSED_B64 !== "undefined" && COX_COMPRESSED_B64.length > 50) {
                 try {
@@ -485,9 +365,7 @@
                     const jsonText = await new Response(stream).text();
                     db = JSON.parse(jsonText);
                     setBadgeRealData();
-                } catch (e) {
-                    console.error("Fehler beim Entpacken:", e);
-                }
+                } catch (e) { console.error("Fehler beim Entpacken:", e); }
             }
 
             discoveredMatrix["COX1_Ibuprofen"] = true;
@@ -576,7 +454,6 @@
             return { pocketC, gkC, argC, serC, tyrC };
         }
 
-        // Erzeugt eine echte MDL MOL / SDF V2000 Struktur-Datei im Arbeitsspeicher
         function buildLigandSdfInPocket(ligName, geom) {
             const tpl = LIGAND_TEMPLATES[ligName] || LIGAND_TEMPLATES["Ibuprofen"];
 
@@ -652,19 +529,18 @@
 
             viewer.clear();
 
-            // Entfernt die alten unverbundenen Chain-L/HETATM-Zeilen aus dem PDB-String
+            // Lädt reines Protein ohne unverbundene Altreste
             const cleanProteinPdb = entry.pdb_data
                 .split(/\r?\n/)
                 .filter(line => !line.startsWith("HETATM") && line.substring(21, 22) !== "L")
                 .join("\n");
 
-            // 1. Lade reines Protein-Modell (Model 0)
             const protModel = viewer.addModel(cleanProteinPdb, "pdb");
             const hs = db.hotspots[entry.enzyme];
             const geom = getActivePocketGeometry(protModel, hs);
             entry._activeGeom = geom;
 
-            // 2. Lade das vollständig verbundene Wirkstoff-Molekül im SDF/MOL-Format (Model 1)
+            // Lädt das saubere, verbundene SDF-Molekül
             const sdfString = buildLigandSdfInPocket(entry.ligand, geom);
             activeLigandModel = viewer.addModel(sdfString, "sdf");
 
@@ -688,10 +564,10 @@
         function updateLigandStyleOnly() {
             if (!activeLigandModel) return;
             const ligStyle = {
-                stick: {colorscheme: "cyanCarbon", radius: 0.25},
+                stick: {colorscheme: "cyanCarbon", radius: 0.28},
                 sphere: activeLayers.vdw
                     ? {colorscheme: "cyanCarbon", scale: 0.78, opacity: 0.92}
-                    : {colorscheme: "cyanCarbon", scale: 0.30}
+                    : {colorscheme: "cyanCarbon", scale: 0.22}
             };
             activeLigandModel.setStyle({}, ligStyle);
         }
@@ -707,28 +583,24 @@
             const isClash = (enz === "COX1" && entry.ligand === "Celecoxib");
             const geom = entry._activeGeom;
 
-            // 1. Protein-Grundgerüst (Chain A)
+            // Protein-Grundgerüst
             viewer.setStyle({chain: "A"}, {cartoon: {color: "#334155", opacity: 0.65}});
 
             if (activeLayers.pocket_env && entry.pocket_residues) {
                 viewer.addStyle({chain: "A", resi: entry.pocket_residues}, {line: {colorscheme: "grayCarbon", opacity: 0.35}});
             }
 
-            // 2. Wirkstoff / Ligand (Model 1, SDF)
             updateLigandStyleOnly();
 
             if (geom && showInteractions && activeLigandModel) {
-                const ligAtoms = activeLigandModel.selectedAtoms({});
-                if (ligAtoms.length > 0) {
-                    viewer.addLabel(
-                        LIGAND_META[entry.ligand].label,
-                        {fontSize: 12, fontColor: "#020617", backgroundColor: "#22d3ee", backgroundOpacity: 0.92},
-                        {model: activeLigandModel}
-                    );
-                }
+                viewer.addLabel(
+                    LIGAND_META[entry.ligand].label,
+                    {fontSize: 12, fontColor: "#020617", backgroundColor: "#22d3ee", backgroundOpacity: 0.92},
+                    {model: activeLigandModel}
+                );
             }
 
-            // 3. Die 4 Schlüssel-Aminosäuren (Hotspots)
+            // Hotspots
             if (activeLayers.hotspots && hs) {
                 const gkColor = (enz === "COX1") ? "#f43f5e" : "#10b981";
                 const gkStyle = {
@@ -752,33 +624,31 @@
                 viewer.addLabel("⚡ Tyr-385", {fontSize: 11, fontColor: "white", backgroundColor: "#7e22ce", backgroundOpacity: 0.85}, {chain: "A", resi: hs.catalytic_tyr385});
             }
 
-            // 4. Visuelle Clash-Warnkugel oder Wechselwirkungslinie
+            // Visuelle Clash-Warnkugel oder mehrfache feine Wechselwirkungslinien
             if (geom && showInteractions) {
                 if (isClash) {
                     viewer.addSphere({
-                        center: {
-                            x: geom.gkC.x,
-                            y: geom.gkC.y,
-                            z: geom.gkC.z
-                        },
-                        radius: 2.5,
+                        center: { x: geom.gkC.x, y: geom.gkC.y, z: geom.gkC.z },
+                        radius: 2.6,
                         color: "#ef4444",
-                        alpha: 0.48,
+                        alpha: 0.52,
                         wireframe: true
                     });
                 } else {
-                    const targetPt = (entry.ligand === "Celecoxib") ? geom.gkC : geom.argC;
-                    viewer.addCylinder({
-                        start: geom.pocketC,
-                        end: targetPt,
-                        radius: 0.10,
-                        color: "#10b981",
-                        dashed: true
+                    // MEHRERE FEINE GESTRICHELTE LINIEN zu Arg-120, Ser-530 und Tyr-385
+                    const targets = [geom.argC, geom.serC, geom.tyrC];
+                    targets.forEach(pt => {
+                        viewer.addCylinder({
+                            start: geom.pocketC,
+                            end: pt,
+                            radius: 0.06,
+                            color: "#38bdf8",
+                            dashed: true
+                        });
                     });
                 }
             }
 
-            // 5. Taschen-Oberfläche (Surface)
             if (activeLayers.surface) {
                 const resList = entry.pocket_residues || [];
                 const sel = resList.length > 0 ? {chain: "A", resi: resList} : {chain: "A"};
@@ -796,7 +666,7 @@
                 btn.className = "px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition";
             }
             const jobId = `${currentEnzyme}_${currentLigand}`;
-            applySceneStyles(db.models[jobId], true);
+            applySceneStyles(entry=db.models[jobId], true);
             viewer.render();
         }
 
@@ -811,9 +681,6 @@
             }
         }
 
-        // =========================================================================
-        // FLÜSSIGE 60-FPS LIVE-DOCKING ANIMATION (Bewegt das SDF-Molekül als Ganzes)
-        // =========================================================================
         function resetDockButton() {
             const btnText = document.getElementById("btn_dock_text");
             if (btnText) btnText.textContent = "🚀 DOCKING-ANIMATION STARTEN";
@@ -890,9 +757,6 @@
             step();
         }
 
-        // =========================================================================
-        // TELEMETRIE & VERGLEICHSMATRIX
-        // =========================================================================
         function updateTelemetryPanel(entry) {
             const meta = LIGAND_META[entry.ligand];
             document.getElementById("lig_badge").textContent = meta.badge;
@@ -955,9 +819,6 @@
             renderMatrixTable();
         }
 
-        // =========================================================================
-        // DATEI-UPLOAD & MODALS
-        // =========================================================================
         function setupDragAndDrop() {
             const dz = document.body;
             const overlay = document.getElementById("drop_overlay");
@@ -979,11 +840,7 @@
             try {
                 if (file.name.endsWith(".json")) {
                     const parsed = JSON.parse(text);
-                    if (parsed.models) {
-                        db = parsed;
-                        setBadgeRealData();
-                        loadCurrentModel(true);
-                    }
+                    if (parsed.models) { db = parsed; setBadgeRealData(); loadCurrentModel(true); }
                 } else if (file.name.endsWith(".js")) {
                     const match = text.match(/COX_COMPRESSED_B64\s*=\s*"([^"]+)"/);
                     if (match && match[1]) {
@@ -996,28 +853,25 @@
                         loadCurrentModel(true);
                     }
                 }
-            } catch (err) {
-                alert("Fehler beim Laden der Datei: " + err.message);
-            }
+            } catch (err) { alert("Fehler beim Laden: " + err.message); }
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
-        function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+        function openModal(id) { document.getElementById(id).classList.remove("hidden");}
+        function closeModal(id) { document.getElementById(id).classList.add("hidden");}
 
         function checkQuiz() {
             const a1 = document.getElementById("q1").value;
             const a2 = document.getElementById("q2").value;
-            const a3 = document.getElementById("q3").value;
             const a4 = document.getElementById("q4").value;
             const fb = document.getElementById("quiz_feedback");
             fb.classList.remove("hidden");
 
-            if (a1 === "ibu" && a2 === "ile" && a3 === "side" && a4 === "clash") {
+            if (a1 === "ibu" && a2 === "ile" && a4 === "clash") {
                 fb.className = "p-3 rounded-lg text-xs font-semibold bg-emerald-950 border border-emerald-500 text-emerald-300";
-                fb.innerHTML = "🎉 <b>Perfekt gelöst!</b> Du hast den molekularen Mechanismus der selektiven COX-2-Hemmung vollständig entschlüsselt.";
+                fb.innerHTML = "🎉 <b>Perfekt gelöst!</b> Mechanismus vollständig verstanden.";
             } else {
                 fb.className = "p-3 rounded-lg text-xs font-semibold bg-rose-950 border border-rose-500 text-rose-300";
-                fb.innerHTML = "⚠️ Noch nicht alle Lücken stimmen. Tipp: Nutze den „⚡ Schnell-Flip“-Button bei Celecoxib und schalte die „🫧 VdW-Kugeln“ ein!";
+                fb.innerHTML = "⚠️ Bitte überprüfen Sie Ihre Antworten.";
             }
         }
     </script>
