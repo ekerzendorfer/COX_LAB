@@ -316,31 +316,26 @@
         };
 
         // =========================================================================
-        // EXAKTE CHEMISCHE 3D-MOLEKÜL-VORLAGEN (Atomkoordinaten in Å + kovalente Bindungen)
-        //Lokales Koordinatensystem:
-        //  u-Achse = Richtung Pos. 523 (Seitentasche)
-        //  v-Achse = Richtung Arg-120 (-COOH Anker unten im Kanal)
-        //  w-Achse = Senkrecht dazu (Kanal-Breite / Richtung Ser-530 & Tyr-385)
+        // EXAKTE CHEMISCHE 3D-MOLEKÜL-VORLAGEN (Für garantierten SDF/MOL-V2000 Export)
         // =========================================================================
         const LIGAND_TEMPLATES = {
             "Ibuprofen": {
-                // 15 Schweratome: Benzolring (0..5) + Propionsäure an C0 Richtung Arg-120 (6..9) + Isobutyl an C3 Richtung Tyr-385 (10..12)
                 atoms: [
-                    {e:"C", u: 0.0, v: 1.40, w: 0.0}, // 0: C1 (unten)
-                    {e:"C", u: 0.9, v: 0.70, w: 0.8}, // 1: C2
-                    {e:"C", u: 0.9, v:-0.70, w: 0.8}, // 2: C3
-                    {e:"C", u: 0.0, v:-1.40, w: 0.0}, // 3: C4 (oben)
-                    {e:"C", u:-0.9, v:-0.70, w:-0.8}, // 4: C5
-                    {e:"C", u:-0.9, v: 0.70, w:-0.8}, // 5: C6
-                    {e:"C", u: 0.0, v: 2.90, w: 0.0}, // 6: CH(CH3)
-                    {e:"C", u:-1.2, v: 3.45, w: 0.7}, // 7: CH3 (Propionsäure)
-                    {e:"C", u: 1.1, v: 3.55, w:-0.6}, // 8: C=O (Carboxyl)
-                    {e:"O", u: 2.1, v: 3.00, w:-1.0}, // 9: O1 (Carboxyl)
-                    {e:"O", u: 1.0, v: 4.80, w:-0.7}, // 10: O2 (OH Richtung Arg-120)
-                    {e:"C", u: 0.0, v:-2.90, w: 0.0}, // 11: CH2 (Isobutyl)
-                    {e:"C", u:-1.1, v:-3.65, w: 0.7}, // 12: CH (Isobutyl)
-                    {e:"C", u:-0.9, v:-5.15, w: 0.6}, // 13: CH3
-                    {e:"C", u:-2.4, v:-3.25, w: 0.1}  // 14: CH3
+                    {e:"C", u: 0.0, v: 1.40, w: 0.0},
+                    {e:"C", u: 0.9, v: 0.70, w: 0.8},
+                    {e:"C", u: 0.9, v:-0.70, w: 0.8},
+                    {e:"C", u: 0.0, v:-1.40, w: 0.0},
+                    {e:"C", u:-0.9, v:-0.70, w:-0.8},
+                    {e:"C", u:-0.9, v: 0.70, w:-0.8},
+                    {e:"C", u: 0.0, v: 2.90, w: 0.0},
+                    {e:"C", u:-1.2, v: 3.45, w: 0.7},
+                    {e:"C", u: 1.1, v: 3.55, w:-0.6},
+                    {e:"O", u: 2.1, v: 3.00, w:-1.0},
+                    {e:"O", u: 1.0, v: 4.80, w:-0.7},
+                    {e:"C", u: 0.0, v:-2.90, w: 0.0},
+                    {e:"C", u:-1.1, v:-3.65, w: 0.7},
+                    {e:"C", u:-0.9, v:-5.15, w: 0.6},
+                    {e:"C", u:-2.4, v:-3.25, w: 0.1}
                 ],
                 bonds: [
                     [0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],
@@ -349,21 +344,20 @@
                 ]
             },
             "Aspirin": {
-                // 13 Schweratome: Benzolring (0..5) + Carboxyl an C0 Richtung Arg-120 (6..8) + Acetoxy an C1 Richtung Ser-530 (9..12)
                 atoms: [
-                    {e:"C", u:-0.2, v: 1.20, w: 0.0}, // 0: C1
-                    {e:"C", u: 0.2, v: 0.40, w: 1.1}, // 1: C2 (trägt Acetyl Richtung Ser-530)
-                    {e:"C", u: 0.2, v:-0.98, w: 1.0}, // 2: C3
-                    {e:"C", u:-0.2, v:-1.55, w:-0.2}, // 3: C4
-                    {e:"C", u:-0.6, v:-0.75, w:-1.3}, // 4: C5
-                    {e:"C", u:-0.6, v: 0.62, w:-1.2}, // 5: C6
-                    {e:"C", u:-0.2, v: 2.68, w: 0.1}, // 6: C=O (Carboxyl)
-                    {e:"O", u: 0.6, v: 3.25, w: 0.9}, // 7: O1
-                    {e:"O", u:-1.0, v: 3.35, w:-0.6}, // 8: O2 (OH)
-                    {e:"O", u: 0.7, v: 0.95, w: 2.3}, // 9: O (Ester)
-                    {e:"C", u: 1.6, v: 0.25, w: 3.1}, // 10: C=O (Acetyl)
-                    {e:"O", u: 2.0, v:-0.88, w: 2.8}, // 11: O=C (Acetyl)
-                    {e:"C", u: 2.1, v: 0.95, w: 4.3}  // 12: CH3 (Acetyl)
+                    {e:"C", u:-0.2, v: 1.20, w: 0.0},
+                    {e:"C", u: 0.2, v: 0.40, w: 1.1},
+                    {e:"C", u: 0.2, v:-0.98, w: 1.0},
+                    {e:"C", u:-0.2, v:-1.55, w:-0.2},
+                    {e:"C", u:-0.6, v:-0.75, w:-1.3},
+                    {e:"C", u:-0.6, v: 0.62, w:-1.2},
+                    {e:"C", u:-0.2, v: 2.68, w: 0.1},
+                    {e:"O", u: 0.6, v: 3.25, w: 0.9},
+                    {e:"O", u:-1.0, v: 3.35, w:-0.6},
+                    {e:"O", u: 0.7, v: 0.95, w: 2.3},
+                    {e:"C", u: 1.6, v: 0.25, w: 3.1},
+                    {e:"O", u: 2.0, v:-0.88, w: 2.8},
+                    {e:"C", u: 2.1, v: 0.95, w: 4.3}
                 ],
                 bonds: [
                     [0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],
@@ -372,25 +366,24 @@
                 ]
             },
             "Naproxen": {
-                // 17 Schweratome: Naphthalin-Doppelring (0..9) + Propionsäure Richtung Arg-120 (10..14) + Methoxy oben (15..16)
                 atoms: [
-                    {e:"C", u: 0.0, v: 0.70, w: 0.0}, // 0: Brücken-C1
-                    {e:"C", u: 0.0, v:-0.70, w: 0.0}, // 1: Brücken-C2
-                    {e:"C", u: 0.8, v: 1.40, w: 0.9}, // 2
-                    {e:"C", u: 0.8, v: 2.80, w: 0.9}, // 3 (trägt Propionsäure)
-                    {e:"C", u: 0.0, v: 3.50, w: 0.0}, // 4
-                    {e:"C", u:-0.8, v: 2.80, w:-0.9}, // 5
-                    {e:"C", u:-0.8, v:-1.40, w:-0.9}, // 6
-                    {e:"C", u:-0.8, v:-2.80, w:-0.9}, // 7 (trägt Methoxy)
-                    {e:"C", u: 0.0, v:-3.50, w: 0.0}, // 8
-                    {e:"C", u: 0.8, v:-2.80, w: 0.9}, // 9
-                    {e:"C", u: 1.6, v: 3.55, w: 1.9}, // 10: CH
-                    {e:"C", u: 2.9, v: 2.90, w: 2.2}, // 11: CH3
-                    {e:"C", u: 0.9, v: 4.75, w: 2.5}, // 12: C=O
-                    {e:"O", u:-0.2, v: 5.10, w: 2.1}, // 13: O1
-                    {e:"O", u: 1.6, v: 5.40, w: 3.3}, // 14: O2
-                    {e:"O", u:-1.6, v:-3.50, w:-1.8}, // 15: O (Methoxy)
-                    {e:"C", u:-1.7, v:-4.90, w:-1.7}  // 16: CH3 (Methoxy)
+                    {e:"C", u: 0.0, v: 0.70, w: 0.0},
+                    {e:"C", u: 0.0, v:-0.70, w: 0.0},
+                    {e:"C", u: 0.8, v: 1.40, w: 0.9},
+                    {e:"C", u: 0.8, v: 2.80, w: 0.9},
+                    {e:"C", u: 0.0, v: 3.50, w: 0.0},
+                    {e:"C", u:-0.8, v: 2.80, w:-0.9},
+                    {e:"C", u:-0.8, v:-1.40, w:-0.9},
+                    {e:"C", u:-0.8, v:-2.80, w:-0.9},
+                    {e:"C", u: 0.0, v:-3.50, w: 0.0},
+                    {e:"C", u: 0.8, v:-2.80, w: 0.9},
+                    {e:"C", u: 1.6, v: 3.55, w: 1.9},
+                    {e:"C", u: 2.9, v: 2.90, w: 2.2},
+                    {e:"C", u: 0.9, v: 4.75, w: 2.5},
+                    {e:"O", u:-0.2, v: 5.10, w: 2.1},
+                    {e:"O", u: 1.6, v: 5.40, w: 3.3},
+                    {e:"O", u:-1.6, v:-3.50, w:-1.8},
+                    {e:"C", u:-1.7, v:-4.90, w:-1.7}
                 ],
                 bonds: [
                     [0,1,2],[0,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1],
@@ -400,30 +393,29 @@
                 ]
             },
             "Arachidonsaeure": {
-                // 22 Schweratome: Carboxyl-Kopf an Arg-120 + Haarnadel-förmige C20-Kette im Kanal
                 atoms: [
-                    {e:"O", u: 0.6, v: 4.50, w:-0.5}, // 0: O1 (an Arg-120)
-                    {e:"O", u:-1.1, v: 4.20, w: 0.6}, // 1: O2
-                    {e:"C", u:-0.2, v: 3.75, w: 0.0}, // 2: C1 (Carboxyl)
-                    {e:"C", u:-0.2, v: 2.25, w: 0.0}, // 3: C2
-                    {e:"C", u: 0.7, v: 1.55, w: 0.9}, // 4: C3
-                    {e:"C", u: 0.6, v: 0.05, w: 0.9}, // 5: C4
-                    {e:"C", u:-0.3, v:-0.65, w: 0.1}, // 6: C5=
-                    {e:"C", u:-0.5, v:-2.02, w: 0.1}, // 7: =C6
-                    {e:"C", u: 0.3, v:-2.90, w: 1.0}, // 8: C7
-                    {e:"C", u: 0.1, v:-4.35, w: 0.8}, // 9: C8=
-                    {e:"C", u:-0.9, v:-4.95, w: 0.1}, // 10: =C9 (Scheitelpunkt bei Tyr-385)
-                    {e:"C", u:-1.9, v:-4.20, w:-0.7}, // 11: C10
-                    {e:"C", u:-2.2, v:-2.80, w:-0.4}, // 12: C11=
-                    {e:"C", u:-1.6, v:-1.75, w:-1.0}, // 13: =C12
-                    {e:"C", u:-2.0, v:-0.35, w:-0.8}, // 14: C13
-                    {e:"C", u:-1.5, v: 0.65, w:-1.8}, // 15: C14=
-                    {e:"C", u:-0.5, v: 1.55, w:-1.6}, // 16: =C15
-                    {e:"C", u:-0.1, v: 2.55, w:-2.6}, // 17: C16
-                    {e:"C", u: 1.1, v: 3.35, w:-2.3}, // 18: C17
-                    {e:"C", u: 1.5, v: 4.30, w:-3.4}, // 19: C18
-                    {e:"C", u: 2.7, v: 5.10, w:-3.1}, // 20: C19
-                    {e:"C", u: 3.1, v: 6.00, w:-4.2}  // 21: C20
+                    {e:"O", u: 0.6, v: 4.50, w:-0.5},
+                    {e:"O", u:-1.1, v: 4.20, w: 0.6},
+                    {e:"C", u:-0.2, v: 3.75, w: 0.0},
+                    {e:"C", u:-0.2, v: 2.25, w: 0.0},
+                    {e:"C", u: 0.7, v: 1.55, w: 0.9},
+                    {e:"C", u: 0.6, v: 0.05, w: 0.9},
+                    {e:"C", u:-0.3, v:-0.65, w: 0.1},
+                    {e:"C", u:-0.5, v:-2.02, w: 0.1},
+                    {e:"C", u: 0.3, v:-2.90, w: 1.0},
+                    {e:"C", u: 0.1, v:-4.35, w: 0.8},
+                    {e:"C", u:-0.9, v:-4.95, w: 0.1},
+                    {e:"C", u:-1.9, v:-4.20, w:-0.7},
+                    {e:"C", u:-2.2, v:-2.80, w:-0.4},
+                    {e:"C", u:-1.6, v:-1.75, w:-1.0},
+                    {e:"C", u:-2.0, v:-0.35, w:-0.8},
+                    {e:"C", u:-1.5, v: 0.65, w:-1.8},
+                    {e:"C", u:-0.5, v: 1.55, w:-1.6},
+                    {e:"C", u:-0.1, v: 2.55, w:-2.6},
+                    {e:"C", u: 1.1, v: 3.35, w:-2.3},
+                    {e:"C", u: 1.5, v 4.30, w:-3.4},
+                    {e:"C", u: 2.7, v: 5.10, w:-3.1},
+                    {e:"C", u: 3.1, v: 6.00, w:-4.2}
                 ],
                 bonds: [
                     [2,0,2],[2,1,1],[2,3,1],[3,4,1],[4,5,1],[5,6,1],[6,7,2],[7,8,1],[8,9,1],[9,10,2],
@@ -431,52 +423,38 @@
                 ]
             },
             "Celecoxib": {
-                // 26 Schweratome:
-                // - Zentraler Pyrazol-Ring (0..4) im Kanal
-                // - CF3-Gruppe (5..8) Richtung Arg-120
-                // - Tolyl-Ring (9..15) nach oben Richtung Tyr-385
-                // - Sperriger Benzolsulfonamid-Arm (16..25) entlang +u DIREKT in die Seitentasche an Position 523!
                 atoms: [
-                    // Pyrazol-Kern (5-Ring)
-                    {e:"N", u: 0.8, v: 0.30, w: 0.0}, // 0: N1 (trägt den Benzolsulfonamid-Ring Richtung Pos. 523!)
-                    {e:"N", u: 0.2, v: 1.50, w: 0.2}, // 1: N2
-                    {e:"C", u:-1.1, v: 1.25, w: 0.3}, // 2: C3 (trägt CF3)
-                    {e:"C", u:-1.4, v:-0.10, w: 0.1}, // 3: C4
-                    {e:"C", u:-0.2, v:-0.70, w:-0.1}, // 4: C5 (trägt Tolyl-Ring)
-                    // CF3-Gruppe an C3 (Index 2)
-                    {e:"C", u:-2.1, v: 2.35, w: 0.5}, // 5: C (CF3)
-                    {e:"F", u:-1.6, v: 3.55, w: 0.3}, // 6: F1
-                    {e:"F", u:-3.2, v: 2.20, w:-0.3}, // 7: F2
-                    {e:"F", u:-2.5, v: 2.30, w: 1.8}, // 8: F3
-                    // Tolyl-Ring (Methylphenyl) an C5 (Index 4)
-                    {e:"C", u:-0.1, v:-2.15, w:-0.3}, // 9
-                    {e:"C", u: 1.1, v:-2.85, w:-0.1}, // 10
-                    {e:"C", u: 1.1, v:-4.22, w:-0.3}, // 11
-                    {e:"C", u:-0.1, v:-4.90, w:-0.7}, // 12 (trägt CH3)
-                    {e:"C", u:-1.3, v:-4.20, w:-0.9}, // 13
-                    {e:"C", u:-1.3, v:-2.82, w:-0.7}, // 14
-                    {e:"C", u:-0.1, v:-6.38, w:-0.9}, // 15: CH3 (Tolyl)
-                    // Benzolring des Sulfonamid-Arms an N1 (Index 0) -> ragt nach +u (Richtung Ile-523 / Val-523)
-                    {e:"C", u: 2.2, v: 0.15, w: 0.0}, // 16: C1'
-                    {e:"C", u: 2.8, v:-0.85, w: 0.7}, // 17: C2'
-                    {e:"C", u: 4.2, v:-0.98, w: 0.7}, // 18: C3'
-                    {e:"C", u: 4.9, v:-0.10, w: 0.0}, // 19: C4' (trägt -SO2NH2)
-                    {e:"C", u: 4.3, v: 0.90, w:-0.7}, // 20: C5'
-                    {e:"C", u: 2.9, v: 1.02, w:-0.7}, // 21: C6'
-                    // Sperrige Sulfonamid-Gruppe (-SO2NH2) an C4' (Index 19) -> sitzt direkt an der Türsteher-Position 523!
-                    {e:"S", u: 6.6, v:-0.25, w: 0.0}, // 22: Schwefel (S)
-                    {e:"O", u: 7.1, v:-1.55, w: 0.4}, // 23: O1 (=O)
-                    {e:"O", u: 7.2, v: 0.85, w: 0.8}, // 24: O2 (=O)
-                    {e:"N", u: 7.1, v: 0.05, w:-1.5}  // 25: NH2
+                    {e:"N", u: 0.8, v: 0.30, w: 0.0},
+                    {e:"N", u: 0.2, v: 1.50, w: 0.2},
+                    {e:"C", u:-1.1, v: 1.25, w: 0.3},
+                    {e:"C", u:-1.4, v:-0.10, w: 0.1},
+                    {e:"C", u:-0.2, v:-0.70, w:-0.1},
+                    {e:"C", u:-2.1, v: 2.35, w: 0.5},
+                    {e:"F", u:-1.6, v: 3.55, w: 0.3},
+                    {e:"F", u:-3.2, v: 2.20, w:-0.3},
+                    {e:"F", u:-2.5, v: 2.30, w: 1.8},
+                    {e:"C", u:-0.1, v:-2.15, w:-0.3},
+                    {e:"C", u: 1.1, v:-2.85, w:-0.1},
+                    {e:"C", u: 1.1, v:-4.22, w:-0.3},
+                    {e:"C", u:-0.1, v:-4.90, w:-0.7},
+                    {e:"C", u:-1.3, v:-4.20, w:-0.9},
+                    {e:"C", u:-1.3, v:-2.82, w:-0.7},
+                    {e:"C", u:-0.1, v:-6.38, w:-0.9},
+                    {e:"C", u: 2.2, v: 0.15, w: 0.0},
+                    {e:"C", u: 2.8, v:-0.85, w: 0.7},
+                    {e:"C", u: 4.2, v:-0.98, w: 0.7},
+                    {e:"C", u: 4.9, v:-0.10, w: 0.0},
+                    {e:"C", u: 4.3, v: 0.90, w:-0.7},
+                    {e:"C", u: 2.9, v: 1.02, w:-0.7},
+                    {e:"S", u: 6.6, v:-0.25, w: 0.0},
+                    {e:"O", u: 7.1, v:-1.55, w: 0.4},
+                    {e:"O", u: 7.2, v: 0.85, w: 0.8},
+                    {e:"N", u: 7.1, v: 0.05, w:-1.5}
                 ],
                 bonds: [
-                    // Pyrazol
                     [0,1,1],[1,2,2],[2,3,1],[3,4,2],[4,0,1],
-                    // CF3
                     [2,5,1],[5,6,1],[5,7,1],[5,8,1],
-                    // Tolyl
                     [4,9,1],[9,10,2],[10,11,1],[11,12,2],[12,13,1],[13,14,2],[14,9,1],[12,15,1],
-                    // Benzolsulfonamid
                     [0,16,1],[16,17,2],[17,18,1],[18,19,2],[19,20,1],[20,21,2],[21,16,1],
                     [19,22,1],[22,23,2],[22,24,2],[22,25,1]
                 ]
@@ -488,6 +466,7 @@
         let currentEnzyme = "COX2";
         let currentLigand = "Celecoxib";
         let viewer = null;
+        let activeLigandModel = null;
         let activeLayers = { hotspots: true, vdw: false, pocket_env: false, surface: false };
         let discoveredMatrix = {};
         let animFrameId = null;
@@ -590,7 +569,6 @@
             const serC = centerOf(serAtoms);
             const tyrC = centerOf(tyrAtoms);
 
-            // Kanal-Mittelpunkt zwischen den 4 Schlüssel-Aminosäuren
             const pocketC = {
                 x: (gkC.x * 0.25 + serC.x * 0.30 + argC.x * 0.25 + tyrC.x * 0.20),
                 y: (gkC.y * 0.25 + serC.y * 0.30 + argC.y * 0.25 + tyrC.y * 0.20),
@@ -599,19 +577,17 @@
             return { pocketC, gkC, argC, serC, tyrC };
         }
 
-        // Erzeugt ein zu 100 % zusammenhängendes, chemisch exaktes 3D-Wirkstoffmolekül (Chain L) in der Bindungstasche
-        function buildConnectedLigandInPocket(model, ligName, geom) {
+        // Erzeugt eine echte MDL MOL / SDF V2000 Struktur-Datei im Arbeitsspeicher!
+        // Bei SDF/MOL liest 3Dmol.js alle Bindungen (Einfach- und Doppelbindungen!) direkt aus der Bindungsmatrix.
+        function buildLigandSdfInPocket(ligName, geom) {
             const tpl = LIGAND_TEMPLATES[ligName] || LIGAND_TEMPLATES["Ibuprofen"];
 
-            // Orthonormales Koordinatensystem (u, v, w) in der Bindungstasche aufspannen:
-            // u = Einheitsvektor vom Kanalzentrum direkt zum Türsteher 523 (Ile-523 / Val-523)
             let ux = geom.gkC.x - geom.pocketC.x;
             let uy = geom.gkC.y - geom.pocketC.y;
             let uz = geom.gkC.z - geom.pocketC.z;
             const uLen = Math.hypot(ux, uy, uz) || 1;
             ux /= uLen; uy /= uLen; uz /= uLen;
 
-            // v = Einheitsvektor Richtung Arg-120 (orthogonalisiert zu u)
             let vx = geom.argC.x - geom.pocketC.x;
             let vy = geom.argC.y - geom.pocketC.y;
             let vz = geom.argC.z - geom.pocketC.z;
@@ -620,47 +596,49 @@
             const vLen = Math.hypot(vx, vy, vz) || 1;
             vx /= vLen; vy /= vLen; vz /= vLen;
 
-            // w = Kreuzprodukt u x v
             let wx = uy * vz - uz * vy;
             let wy = uz * vx - ux * vz;
             let wz = ux * vy - uy * vx;
 
-            // Bei Celecoxib: Positioniere den Ursprung so, dass das Schwefelatom (u = 6.6) exakt an der Grenze zu Ile-523/Val-523 liegt!
+            // Ursprung im Kanal (so dass Celecoxib-Schwefel bei u=6.6 direkt auf Position 523 trifft)
             const origin = {
                 x: geom.gkC.x - ux * 5.8,
                 y: geom.gkC.y - uy * 5.8,
                 z: geom.gkC.z - uz * 5.8
             };
 
-            // Baue einen standardkonformen PDB-Block mit HETATM und expliziten CONECT-Bindungszeilen!
-            // Dadurch zeichnet 3Dmol.js garantiert ein geschlossenes Kugel-Stab-Molekül ohne jede Punktwolke.
-            const baseSerial = 9001;
-            const pdbLines = [];
+            const numAtoms = String(tpl.atoms.length).padStart(3, " ");
+            const numBonds = String(tpl.bonds.length).padStart(3, " ");
+            const lines = [
+                ligName,
+                "  Boltz2-COX-Docking-Lab",
+                "",
+                `${numAtoms}${numBonds}  0  0  0  0  0  0  0  0999 V2000`
+            ];
 
-            tpl.atoms.forEach((a, idx) => {
-                const serial = baseSerial + idx;
+            // Atom-Block (Spalten-exakt nach MDL V2000 Standard)
+            tpl.atoms.forEach(a => {
                 const ax = origin.x + ux * a.u + vx * a.v + wx * a.w;
                 const ay = origin.y + uy * a.u + vy * a.v + wy * a.w;
                 const az = origin.z + uz * a.u + vz * a.v + wz * a.w;
-
-                const atomName = (a.e + (idx + 1)).padEnd(4, " ").substring(0, 4);
-                const sStr = String(serial).padStart(5, " ");
-                const xStr = ax.toFixed(3).padStart(8, " ");
-                const yStr = ay.toFixed(3).padStart(8, " ");
-                const zStr = az.toFixed(3).padStart(8, " ");
-                const elemStr = a.e.padStart(2, " ");
-
-                pdbLines.push(`HETATM${sStr} ${atomName} LIG L   1    ${xStr}${yStr}${zStr}  1.00 90.00          ${elemStr}`);
+                const xS = ax.toFixed(4).padStart(10, " ");
+                const yS = ay.toFixed(4).padStart(10, " ");
+                const zS = az.toFixed(4).padStart(10, " ");
+                const el = a.e.padEnd(3, " ");
+                lines.push(`${xS}${yS}${zS} ${el} 0  0  0  0  0  0  0  0  0  0  0  0`);
             });
 
-            // Explizite CONECT-Einträge für jede kovalente Bindung anhängen
-            tpl.bonds.forEach(([i, j]) => {
-                const s1 = String(baseSerial + i).padStart(5, " ");
-                const s2 = String(baseSerial + j).padStart(5, " ");
-                pdbLines.push(`CONECT${s1}${s2}`);
+            // Bindungs-Block (1-basierte Atom-Indizes + Bindungsordnung 1 oder 2)
+            tpl.bonds.forEach(([i, j, order]) => {
+                const a1 = String(i + 1).padStart(3, " ");
+                const a2 = String(j + 1).padStart(3, " ");
+                const bO = String(order || 1).padStart(3, " ");
+                lines.push(`${a1}${a2}${bO}  0  0  0  0`);
             });
 
-            return pdbLines.join("\n");
+            lines.push("M  END");
+            lines.push("$$$$");
+            return lines.join("\n");
         }
 
         function loadCurrentModel(initialZoom = false, preserveView = true) {
@@ -679,21 +657,24 @@
 
             viewer.clear();
 
-            // 1. Lade Protein-Struktur (Chain A)
-            const protModel = viewer.addModel(entry.pdb_data, "pdb");
+            // WICHTIG: Entferne alle unverbundenen Chain-L / HETATM-Zeilen aus dem PDB-String,
+            // damit die alte Punktwolke aus cox_embedded_data.js garantiert verschwindet!
+            const cleanProteinPdb = entry.pdb_data
+                .split(/\r?\n/)
+                .filter(line => !line.startsWith("HETATM") && line.substring(21, 22) !== "L")
+                .join("\n");
+
+            // 1. Lade reines Protein-Modell (Model 0)
+            const protModel = viewer.addModel(cleanProteinPdb, "pdb");
             const hs = db.hotspots[entry.enzyme];
             const geom = getActivePocketGeometry(protModel, hs);
             entry._activeGeom = geom;
 
-            // 2. Prüfe, ob Chain L in pdb_data vorhanden ist; falls nicht (wie in v1 von cox_embedded_data.js),
-            //    füge das vollständig verknüpfte 3D-Wirkstoffmolekül samt CONECT-Bindungstabelle hinzu!
-            let existingLig = protModel.selectedAtoms({chain: "L"});
-            if (!existingLig || existingLig.length < 5) {
-                const connectedLigPdb = buildConnectedLigandInPocket(protModel, entry.ligand, geom);
-                viewer.addModel(connectedLigPdb, "pdb");
-            }
+            // 2. Lade das vollständig verbundene Wirkstoff-Molekül im SDF/MOL-Format (Model 1)
+            const sdfString = buildLigandSdfInPocket(entry.ligand, geom);
+            activeLigandModel = viewer.addModel(sdfString, "sdf");
 
-            document.getElementById("lig_status_label").textContent = "✅ Verbundenes 3D-Molekül aktiv";
+            document.getElementById("lig_status_label").textContent = "✅ Verbundenes SDF-Molekül aktiv";
 
             applySceneStyles(entry, true);
 
@@ -710,15 +691,16 @@
             renderMatrixTable();
         }
 
-        // Zeichnet ausschließlich das Wirkstoff-Molekül (Chain L) – niemals lose Protein-Atome!
+        // Stylt das eigene SDF-Liganden-Modell (Model 1) als geschlossenes Kugel-Stab-Molekül
         function updateLigandStyleOnly() {
+            if (!activeLigandModel) return;
             const ligStyle = {
-                stick: {colorscheme: "cyanCarbon", radius: 0.26},
+                stick: {colorscheme: "cyanCarbon", radius: 0.25},
                 sphere: activeLayers.vdw
                     ? {colorscheme: "cyanCarbon", scale: 0.78, opacity: 0.92}
                     : {colorscheme: "cyanCarbon", scale: 0.30}
             };
-            viewer.setStyle({chain: "L"}, ligStyle);
+            activeLigandModel.setStyle({}, ligStyle);
         }
 
         function applySceneStyles(entry, showInteractions = false) {
@@ -732,22 +714,25 @@
             const isClash = (enz === "COX1" && entry.ligand === "Celecoxib");
             const geom = entry._activeGeom;
 
-            // 1. Protein-Grundgerüst (Chain A) als ruhiges, halbtransparentes Bändermodell
+            // 1. Protein-Grundgerüst (Chain A)
             viewer.setStyle({chain: "A"}, {cartoon: {color: "#334155", opacity: 0.65}});
 
             if (activeLayers.pocket_env && entry.pocket_residues) {
                 viewer.addStyle({chain: "A", resi: entry.pocket_residues}, {line: {colorscheme: "grayCarbon", opacity: 0.35}});
             }
 
-            // 2. Wirkstoff / Ligand (Chain L) als zusammenhängendes Ball-and-Stick-Modell
+            // 2. Wirkstoff / Ligand (Model 1, SDF)
             updateLigandStyleOnly();
 
-            if (geom && showInteractions) {
-                viewer.addLabel(
-                    LIGAND_META[entry.ligand].label,
-                    {fontSize: 12, fontColor: "#020617", backgroundColor: "#22d3ee", backgroundOpacity: 0.92},
-                    {chain: "L"}
-                );
+            if (geom && showInteractions && activeLigandModel) {
+                const ligAtoms = activeLigandModel.selectedAtoms({});
+                if (ligAtoms.length > 0) {
+                    viewer.addLabel(
+                        LIGAND_META[entry.ligand].label,
+                        {fontSize: 12, fontColor: "#020617", backgroundColor: "#22d3ee", backgroundOpacity: 0.92},
+                        {model: activeLigandModel}
+                    );
+                }
             }
 
             // 3. Die 4 Schlüssel-Aminosäuren (Hotspots)
@@ -774,7 +759,7 @@
                 viewer.addLabel("⚡ Tyr-385", {fontSize: 11, fontColor: "white", backgroundColor: "#7e22ce", backgroundOpacity: 0.85}, {chain: "A", resi: hs.catalytic_tyr385});
             }
 
-            // 4. Visuelle Clash-Warnkugel (bei COX-1 + Celecoxib) oder Wechselwirkungslinie
+            // 4. Visuelle Clash-Warnkugel oder Wechselwirkungslinie
             if (geom && showInteractions) {
                 if (isClash) {
                     viewer.addSphere({
@@ -834,7 +819,7 @@
         }
 
         // =========================================================================
-        // FLÜSSIGE 60-FPS LIVE-DOCKING ANIMATION
+        // FLÜSSIGE 60-FPS LIVE-DOCKING ANIMATION (Bewegt das SDF-Molekül als Ganzes)
         // =========================================================================
         function resetDockButton() {
             const btnText = document.getElementById("btn_dock_text");
@@ -848,14 +833,13 @@
             }
             const jobId = `${currentEnzyme}_${currentLigand}`;
             const entry = db.models[jobId];
-            if (!entry) return;
+            if (!entry || !activeLigandModel) return;
 
-            const ligAtoms = viewer.selectedAtoms({chain: "L"});
+            const ligAtoms = activeLigandModel.selectedAtoms({});
             if (!ligAtoms || ligAtoms.length === 0) return;
 
             const geom = entry._activeGeom;
 
-            // Einflug-Richtung: Vom Kanaleingang (Arg-120) hinein zum katalytischen Zentrum
             let vx = geom.argC.x - geom.serC.x;
             let vy = geom.argC.y - geom.serC.y;
             let vz = geom.argC.z - geom.serC.z;
@@ -878,7 +862,6 @@
 
                 let offsetDist = (1 - ease) * 12.0;
 
-                // Bei COX-1 + Celecoxib prallt das Molekül an Ile-523 spürbar zurück
                 if (isClash && progress > 0.72) {
                     offsetDist += Math.sin((progress - 0.72) * Math.PI * 5) * 1.6 + 0.8;
                 }
