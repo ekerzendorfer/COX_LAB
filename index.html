@@ -413,7 +413,7 @@
                     {e:"C", u:-0.5, v: 1.55, w:-1.6},
                     {e:"C", u:-0.1, v: 2.55, w:-2.6},
                     {e:"C", u: 1.1, v: 3.35, w:-2.3},
-                    {e:"C", u: 1.5, v 4.30, w:-3.4},
+                    {e:"C", u: 1.5, v: 4.30, w:-3.4},
                     {e:"C", u: 2.7, v: 5.10, w:-3.1},
                     {e:"C", u: 3.1, v: 6.00, w:-4.2}
                 ],
@@ -550,7 +550,6 @@
             loadCurrentModel(false, true);
         }
 
-        // Berechnet die exakten Koordinaten und Achsen der aktiven Tasche
         function getActivePocketGeometry(model, hs) {
             const gkAtoms = model.selectedAtoms({chain: "A", resi: hs.gatekeeper_523});
             const argAtoms = model.selectedAtoms({chain: "A", resi: hs.anchor_arg120});
@@ -577,8 +576,7 @@
             return { pocketC, gkC, argC, serC, tyrC };
         }
 
-        // Erzeugt eine echte MDL MOL / SDF V2000 Struktur-Datei im Arbeitsspeicher!
-        // Bei SDF/MOL liest 3Dmol.js alle Bindungen (Einfach- und Doppelbindungen!) direkt aus der Bindungsmatrix.
+        // Erzeugt eine echte MDL MOL / SDF V2000 Struktur-Datei im Arbeitsspeicher
         function buildLigandSdfInPocket(ligName, geom) {
             const tpl = LIGAND_TEMPLATES[ligName] || LIGAND_TEMPLATES["Ibuprofen"];
 
@@ -600,7 +598,6 @@
             let wy = uz * vx - ux * vz;
             let wz = ux * vy - uy * vx;
 
-            // Ursprung im Kanal (so dass Celecoxib-Schwefel bei u=6.6 direkt auf Position 523 trifft)
             const origin = {
                 x: geom.gkC.x - ux * 5.8,
                 y: geom.gkC.y - uy * 5.8,
@@ -616,7 +613,6 @@
                 `${numAtoms}${numBonds}  0  0  0  0  0  0  0  0999 V2000`
             ];
 
-            // Atom-Block (Spalten-exakt nach MDL V2000 Standard)
             tpl.atoms.forEach(a => {
                 const ax = origin.x + ux * a.u + vx * a.v + wx * a.w;
                 const ay = origin.y + uy * a.u + vy * a.v + wy * a.w;
@@ -628,7 +624,6 @@
                 lines.push(`${xS}${yS}${zS} ${el} 0  0  0  0  0  0  0  0  0  0  0  0`);
             });
 
-            // Bindungs-Block (1-basierte Atom-Indizes + Bindungsordnung 1 oder 2)
             tpl.bonds.forEach(([i, j, order]) => {
                 const a1 = String(i + 1).padStart(3, " ");
                 const a2 = String(j + 1).padStart(3, " ");
@@ -657,8 +652,7 @@
 
             viewer.clear();
 
-            // WICHTIG: Entferne alle unverbundenen Chain-L / HETATM-Zeilen aus dem PDB-String,
-            // damit die alte Punktwolke aus cox_embedded_data.js garantiert verschwindet!
+            // Entfernt die alten unverbundenen Chain-L/HETATM-Zeilen aus dem PDB-String
             const cleanProteinPdb = entry.pdb_data
                 .split(/\r?\n/)
                 .filter(line => !line.startsWith("HETATM") && line.substring(21, 22) !== "L")
@@ -674,7 +668,7 @@
             const sdfString = buildLigandSdfInPocket(entry.ligand, geom);
             activeLigandModel = viewer.addModel(sdfString, "sdf");
 
-            document.getElementById("lig_status_label").textContent = "✅ Verbundenes SDF-Molekül aktiv";
+            document.getElementById("lig_status_label").textContent = "✅ Verbundenes 3D-Molekül aktiv";
 
             applySceneStyles(entry, true);
 
@@ -691,7 +685,6 @@
             renderMatrixTable();
         }
 
-        // Stylt das eigene SDF-Liganden-Modell (Model 1) als geschlossenes Kugel-Stab-Molekül
         function updateLigandStyleOnly() {
             if (!activeLigandModel) return;
             const ligStyle = {
